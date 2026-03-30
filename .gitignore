@@ -1,0 +1,72 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+# APKs e bundles gerados
+*.apk
+*.aab
+*.ap_
+
+# Keystore (NUNCA commitar — compromete a segurança do app)
+*.jks
+*.keystore
+release/
+
+# Arquivos de segredos e chaves de API
+secrets.properties
+google-services.json
+google-services.xml
+
+# Relatórios de teste e cobertura
+/app/build/reports
+/app/build/test-results
+
+# Pasta build dos módulos (a raiz já está, mas módulo app não)
+/app/build
+
+# Arquivos temporários do Kotlin
+*.kotlin_module
+
+# MacOS (complementando o .DS_Store já existente)
+**/.DS_Store
+
+# Gradle
+.gradle
+/build
+/app/build
+gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea
+*.iml
+
+# Android
+local.properties
+/captures
+.externalNativeBuild
+.cxx
+
+# Segredos
+google-services.json
+secrets.properties
+*.jks
+*.keystore
+
+# APK / Bundle
+*.apk
+*.aab
+
+# macOS
+.DS_Store
+**/.DS_Store
