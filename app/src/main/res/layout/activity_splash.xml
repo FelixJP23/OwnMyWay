@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- ══ PHASE 1: White screen — Welcome! ══ -->
+    <LinearLayout
+        android:id="@+id/welcomePhase"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/welcomeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0"
+            android:letterSpacing="0.06"
+            android:text="Welcome!"
+            android:textColor="#4A2080"
+            android:textSize="52sp"
+            android:textStyle="bold" />
+
+        <View
+            android:id="@+id/welcomeUnderline"
+            android:layout_width="0dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="10dp"
+            android:alpha="0"
+            android:background="#7B3FBE"
+            android:visibility="invisible" />
+
+    </LinearLayout>
+
+    <!-- ══ PHASE 2: Purple screen — logo + buttons ══ -->
+    <LinearLayout
+        android:id="@+id/mainPhase"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:visibility="invisible">
+
+        <ImageView
+            android:id="@+id/logoImage"
+            android:layout_width="240dp"
+            android:layout_height="170dp"
+            android:layout_marginBottom="12dp"
+            android:alpha="0"
+            android:contentDescription="Own My Way Logo"
+            android:scaleType="fitCenter"
+            android:src="@drawable/own_my_way_logo" />
+
+        <TextView
+            android:id="@+id/tagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="72dp"
+            android:alpha="0"
+            android:letterSpacing="0.04"
+            android:text="A sua rota personalizada, o seu destino"
+            android:textColor="#D4B8F0"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="16dp"
+            android:alpha="0"
+            android:background="@drawable/btn_filled_white"
+            android:letterSpacing="0.06"
+            android:stateListAnimator="@null"
+            android:text="Login"
+            android:textColor="#4A2080"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnRegister"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:alpha="0"
+            android:background="@drawable/btn_outline_white"
+            android:letterSpacing="0.06"
+            android:stateListAnimator="@null"
+            android:text="Register"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</FrameLayout>
