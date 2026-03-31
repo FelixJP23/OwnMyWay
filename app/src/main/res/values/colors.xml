@@ -7,4 +7,15 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+
+    <!-- Own My Way splash palette -->
+    <color name="omw_purple_dark">#0F0626</color>
+    <color name="omw_purple_mid">#2D1060</color>
+    <color name="omw_purple_main">#4A2080</color>
+    <color name="omw_purple_light">#7B3FBE</color>
+    <color name="omw_tagline">#D4B8F0</color>
+    <color name="omw_white">#FFFFFF</color>
+
+
 </resources>
