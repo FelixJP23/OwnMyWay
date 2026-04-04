@@ -18,6 +18,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
+import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.launch
+import android.util.Log
 
 class SplashActivity : AppCompatActivity() {
 
@@ -58,7 +62,21 @@ class SplashActivity : AppCompatActivity() {
         btnLogin.setOnClickListener { goToMain() }
         btnRegister.setOnClickListener { goToMain() }
 
+        testSupabaseConnection()
         startAnimationSequence()
+    }
+
+    private fun testSupabaseConnection() {
+        lifecycleScope.launch {
+            try {
+                val client = SupabaseClient.client
+                Log.d("SupabaseTest", "Client initialized: $client")
+                // Teste simples de conexão (opcional, requer tabela existente)
+                // client.postgrest["test"].select() 
+            } catch (e: Exception) {
+                Log.e("SupabaseTest", "Connection error: ${e.message}")
+            }
+        }
     }
 
     private fun goToMain() {
