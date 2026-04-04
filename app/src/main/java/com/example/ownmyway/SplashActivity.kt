@@ -80,8 +80,32 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun goToMain() {
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
+        lifecycleScope.launch {
+            try {
+                val user = SupabaseClient.client.auth.currentUserOrNull()
+                if (user != null) {
+                    val profile = SupabaseClient.client.postgrest["profiles"]
+                        .select {
+                            filter {
+                                eq("id", user.id)
+                            }
+                        }.decodeSingle<UserProfile>()
+
+                    if (profile.onboarding_completed) {
+                        startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    } else {
+                        startActivity(Intent(this@SplashActivity, OnboardingActivity::class.java))
+                    }
+                } else {
+                    // Sem login, por enquanto vai para o Main ou Onboarding para teste
+                    startActivity(Intent(this@SplashActivity, OnboardingActivity::class.java))
+                }
+            } catch (e: Exception) {
+                // Se der erro (ex: perfil não existe ainda), manda para onboarding
+                startActivity(Intent(this@SplashActivity, OnboardingActivity::class.java))
+            }
+            finish()
+        }
     }
 
     private fun startAnimationSequence() {
