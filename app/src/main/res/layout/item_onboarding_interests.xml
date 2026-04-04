@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/playfair_display_bold"
+        android:text="O que você mais ama?"
+        android:textColor="@color/omw_purple_mid"
+        android:textSize="32sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Selecione as experiências que fazem seus olhos brilharem."
+        android:textColor="#666666" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroupInterests"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        app:chipSpacingVertical="12dp"
+        app:chipSpacingHorizontal="8dp">
+
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.MaterialComponents.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Museus e Arte"
+            android:textColor="@color/omw_purple_mid"
+            android:textSize="16sp"
+            app:chipBackgroundColor="@color/omw_white"
+            app:chipStrokeColor="@color/omw_purple_light"
+            app:chipStrokeWidth="1dp" />
+
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.MaterialComponents.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trilhas e Natureza"
+            android:textColor="@color/omw_purple_mid"
+            android:textSize="16sp"
+            app:chipBackgroundColor="@color/omw_white"
+            app:chipStrokeColor="@color/omw_purple_light"
+            app:chipStrokeWidth="1dp" />
+
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.MaterialComponents.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gastronomia"
+            android:textColor="@color/omw_purple_mid"
+            android:textSize="16sp"
+            app:chipBackgroundColor="@color/omw_white"
+            app:chipStrokeColor="@color/omw_purple_light"
+            app:chipStrokeWidth="1dp" />
+
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.MaterialComponents.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vida Noturna"
+            android:textColor="@color/omw_purple_mid"
+            android:textSize="16sp"
+            app:chipBackgroundColor="@color/omw_white"
+            app:chipStrokeColor="@color/omw_purple_light"
+            app:chipStrokeWidth="1dp" />
+
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.MaterialComponents.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Compras"
+            android:textColor="@color/omw_purple_mid"
+            android:textSize="16sp"
+            app:chipBackgroundColor="@color/omw_white"
+            app:chipStrokeColor="@color/omw_purple_light"
+            app:chipStrokeWidth="1dp" />
+
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.MaterialComponents.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="História"
+            android:textColor="@color/omw_purple_mid"
+            android:textSize="16sp"
+            app:chipBackgroundColor="@color/omw_white"
+            app:chipStrokeColor="@color/omw_purple_light"
+            app:chipStrokeWidth="1dp" />
+    </com.google.android.material.chip.ChipGroup>
+
+</LinearLayout>
