@@ -22,6 +22,8 @@ import androidx.lifecycle.lifecycleScope
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.example.ownmyway.network.UserProfile
+import io.github.jan.supabase.auth.auth
 
 class SplashActivity : AppCompatActivity() {
 
