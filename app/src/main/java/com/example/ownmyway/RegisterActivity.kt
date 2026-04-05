@@ -14,7 +14,6 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.launch
-
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var etName: EditText
@@ -83,43 +82,43 @@ class RegisterActivity : AppCompatActivity() {
             }
         }
 
-        btnRegister.isEnabled = false
-        btnRegister.text = "Criando..."
+        setLoading(true)
 
         lifecycleScope.launch {
             try {
-                // 1) Cria no auth.users
                 SupabaseClient.client.auth.signUpWith(Email) {
                     this.email = email
                     this.password = password
                 }
 
-                // 2) Pega o usuário autenticado/criado
+                SupabaseClient.client.auth.signInWith(Email) {
+                    this.email = email
+                    this.password = password
+                }
+
                 val user = SupabaseClient.client.auth.currentUserOrNull()
 
                 if (user == null) {
-                    btnRegister.isEnabled = true
-                    btnRegister.text = "Entrar"
+                    setLoading(false)
                     Toast.makeText(
                         this@RegisterActivity,
-                        "Usuário criado, mas não foi possível recuperar a sessão. Verifique a confirmação por e-mail no Supabase.",
+                        "Conta criada, mas não foi possível entrar.",
                         Toast.LENGTH_LONG
                     ).show()
                     return@launch
                 }
 
-                // 3) Cria a linha na tabela profiles com o MESMO id do auth.users.id
-                val profile = UserProfile(
-                    id = user.id,
-                    full_name = name,
-                    onboarding_completed = false,
-                    budget_level = null,
-                    travel_pace = null,
-                    interests = emptyList(),
-                    preferred_transport = null
-                )
+                SupabaseClient.client.postgrest["profiles"].update(
+                    {
+                        set("full_name", name)
+                    }
+                ) {
+                    filter {
+                        eq("id", user.id)
+                    }
+                }
 
-                SupabaseClient.client.postgrest["profiles"].insert(profile)
+                setLoading(false)
 
                 Toast.makeText(
                     this@RegisterActivity,
@@ -127,14 +126,11 @@ class RegisterActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
 
-                // 4) Vai para onboarding
                 startActivity(Intent(this@RegisterActivity, OnboardingActivity::class.java))
                 finish()
 
             } catch (e: Exception) {
-                btnRegister.isEnabled = true
-                btnRegister.text = "Entrar"
-
+                setLoading(false)
                 Toast.makeText(
                     this@RegisterActivity,
                     "Erro ao criar conta: ${e.message}",
@@ -142,5 +138,10 @@ class RegisterActivity : AppCompatActivity() {
                 ).show()
             }
         }
+    }
+
+    private fun setLoading(isLoading: Boolean) {
+        btnRegister.isEnabled = !isLoading
+        btnRegister.text = if (isLoading) "Criando..." else "Criar conta"
     }
 }
