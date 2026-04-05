@@ -61,7 +61,9 @@ class SplashActivity : AppCompatActivity() {
 
         // Both buttons go to MainActivity for now
         btnLogin.setOnClickListener { goToMain() }
-        btnRegister.setOnClickListener { goToMain() }
+        btnRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+        }
 
         testSupabaseConnection()
         startAnimationSequence()
