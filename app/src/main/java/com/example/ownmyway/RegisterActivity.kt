@@ -64,7 +64,7 @@ class RegisterActivity : AppCompatActivity() {
                 return
             }
 
-            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                 etEmail.error = "E-mail inválido"
                 etEmail.requestFocus()
                 return
@@ -88,11 +88,13 @@ class RegisterActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                SupabaseClient.client.auth.signUpWith(io.github.jan.supabase.auth.providers.builtin.Email) {
+                // 1) Cria no auth.users
+                SupabaseClient.client.auth.signUpWith(Email) {
                     this.email = email
                     this.password = password
                 }
 
+                // 2) Pega o usuário autenticado/criado
                 val user = SupabaseClient.client.auth.currentUserOrNull()
 
                 if (user == null) {
@@ -100,12 +102,13 @@ class RegisterActivity : AppCompatActivity() {
                     btnRegister.text = "Entrar"
                     Toast.makeText(
                         this@RegisterActivity,
-                        "Conta criada, mas não foi possível recuperar o usuário atual.",
+                        "Usuário criado, mas não foi possível recuperar a sessão. Verifique a confirmação por e-mail no Supabase.",
                         Toast.LENGTH_LONG
                     ).show()
                     return@launch
                 }
 
+                // 3) Cria a linha na tabela profiles com o MESMO id do auth.users.id
                 val profile = UserProfile(
                     id = user.id,
                     full_name = name,
@@ -116,14 +119,7 @@ class RegisterActivity : AppCompatActivity() {
                     preferred_transport = null
                 )
 
-                try {
-                    SupabaseClient.client.postgrest["profiles"].insert(profile)
-                } catch (profileError: Exception) {
-                    val msg = profileError.message.orEmpty()
-                    if (!msg.contains("duplicate key value violates unique constraint", ignoreCase = true)) {
-                        throw profileError
-                    }
-                }
+                SupabaseClient.client.postgrest["profiles"].insert(profile)
 
                 Toast.makeText(
                     this@RegisterActivity,
@@ -131,11 +127,11 @@ class RegisterActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
 
+                // 4) Vai para onboarding
                 startActivity(Intent(this@RegisterActivity, OnboardingActivity::class.java))
                 finish()
 
             } catch (e: Exception) {
-                e.printStackTrace()
                 btnRegister.isEnabled = true
                 btnRegister.text = "Entrar"
 
