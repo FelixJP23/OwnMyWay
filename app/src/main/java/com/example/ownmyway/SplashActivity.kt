@@ -74,6 +74,7 @@ class SplashActivity : AppCompatActivity() {
         btnRegister.setOnClickListener { goToMain() }
 
         testSupabaseConnection()
+        startAnimationSequence()
     }
 
     private fun testSupabaseConnection() {
