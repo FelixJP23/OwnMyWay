@@ -48,6 +48,7 @@ class SplashActivity : AppCompatActivity() {
                 )
         window.statusBarColor = Color.TRANSPARENT
 
+        setContentView(R.layout.activity_splash)
 
         rootLayout       = findViewById(R.id.rootLayout)
         welcomePhase     = findViewById(R.id.welcomePhase)
@@ -70,8 +71,10 @@ class SplashActivity : AppCompatActivity() {
         }
 
         // Both buttons go to MainActivity for now
-        btnLogin.setOnClickListener { goToLogin() }
-        btnRegister.setOnClickListener { goToMain() }
+        btnLogin.setOnClickListener { goToMain() }
+        btnRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+        }
 
         testSupabaseConnection()
         startAnimationSequence()

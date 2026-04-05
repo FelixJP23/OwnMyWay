@@ -48,6 +48,11 @@
             android:exported="false"
             android:label="Perfil" />
 
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false"
+            android:label="Cadastro" />
+
     </application>
 
 </manifest>
