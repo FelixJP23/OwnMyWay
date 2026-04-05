@@ -18,6 +18,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
+import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.launch
+import android.util.Log
 
 class SplashActivity : AppCompatActivity() {
 
@@ -58,12 +62,50 @@ class SplashActivity : AppCompatActivity() {
         btnLogin.setOnClickListener { goToLogin() }
         btnRegister.setOnClickListener { goToMain() }
 
+        testSupabaseConnection()
         startAnimationSequence()
     }
 
+    private fun testSupabaseConnection() {
+        lifecycleScope.launch {
+            try {
+                val client = SupabaseClient.client
+                Log.d("SupabaseTest", "Client initialized: $client")
+                // Teste simples de conexão (opcional, requer tabela existente)
+                // client.postgrest["test"].select() 
+            } catch (e: Exception) {
+                Log.e("SupabaseTest", "Connection error: ${e.message}")
+            }
+        }
+    }
+
     private fun goToMain() {
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
+        lifecycleScope.launch {
+            try {
+                val user = SupabaseClient.client.auth.currentUserOrNull()
+                if (user != null) {
+                    val profile = SupabaseClient.client.postgrest["profiles"]
+                        .select {
+                            filter {
+                                eq("id", user.id)
+                            }
+                        }.decodeSingle<UserProfile>()
+
+                    if (profile.onboarding_completed) {
+                        startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    } else {
+                        startActivity(Intent(this@SplashActivity, OnboardingActivity::class.java))
+                    }
+                } else {
+                    // Sem login, por enquanto vai para o Main ou Onboarding para teste
+                    startActivity(Intent(this@SplashActivity, OnboardingActivity::class.java))
+                }
+            } catch (e: Exception) {
+                // Se der erro (ex: perfil não existe ainda), manda para onboarding
+                startActivity(Intent(this@SplashActivity, OnboardingActivity::class.java))
+            }
+            finish()
+        }
     }
 
     private fun goToLogin() {

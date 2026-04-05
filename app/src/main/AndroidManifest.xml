@@ -43,6 +43,11 @@
             android:name=".MainActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".OnboardingActivity"
+            android:exported="false"
+            android:label="Perfil" />
+
     </application>
 
 </manifest>
