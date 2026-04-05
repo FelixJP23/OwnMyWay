@@ -22,6 +22,8 @@ import androidx.lifecycle.lifecycleScope
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.launch
 import android.util.Log
+import io.github.jan.supabase.auth.auth
+import com.example.ownmyway.network.UserProfile
 
 class SplashActivity : AppCompatActivity() {
 
@@ -39,14 +41,13 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        setContentView(R.layout.activity_splash)
         window.decorView.systemUiVisibility = (
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 )
         window.statusBarColor = Color.TRANSPARENT
 
-        setContentView(R.layout.activity_splash)
 
         rootLayout       = findViewById(R.id.rootLayout)
         welcomePhase     = findViewById(R.id.welcomePhase)
@@ -58,12 +59,21 @@ class SplashActivity : AppCompatActivity() {
         btnLogin         = findViewById(R.id.btnLogin)
         btnRegister      = findViewById(R.id.btnRegister)
 
+        val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
+
+        if (skipAnim) {
+            welcomePhase.visibility = View.GONE
+            mainPhase.visibility = View.VISIBLE
+            rootLayout.setBackgroundResource(R.drawable.bg_purple_gradient)
+        } else {
+            startAnimationSequence()
+        }
+
         // Both buttons go to MainActivity for now
-        btnLogin.setOnClickListener { goToMain() }
+        btnLogin.setOnClickListener { goToLogin() }
         btnRegister.setOnClickListener { goToMain() }
 
         testSupabaseConnection()
-        startAnimationSequence()
     }
 
     private fun testSupabaseConnection() {
@@ -106,6 +116,12 @@ class SplashActivity : AppCompatActivity() {
             }
             finish()
         }
+    }
+
+    private fun goToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish() // Opcional: fecha a tela atual para não voltar ao apertar 'back'
     }
 
     private fun startAnimationSequence() {
