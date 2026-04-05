@@ -59,12 +59,15 @@ class LoginActivity : AppCompatActivity() {
                 }
 
                 Toast.makeText(this@LoginActivity, "Bem-vindo!", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                startActivity(intent)
+                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                 finish()
 
             } catch (e: Exception) {
-                Toast.makeText(this@LoginActivity, "Erro: Usuário ou senha inválidos", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this@LoginActivity,
+                    "Erro: Usuário ou senha inválidos",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
