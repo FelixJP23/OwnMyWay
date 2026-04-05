@@ -22,7 +22,8 @@ import androidx.lifecycle.lifecycleScope
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.launch
 import android.util.Log
-
+import io.github.jan.supabase.auth.auth
+import com.example.ownmyway.network.UserProfile
 class SplashActivity : AppCompatActivity() {
 
     private lateinit var rootLayout: FrameLayout
