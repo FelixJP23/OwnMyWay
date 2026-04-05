@@ -42,6 +42,9 @@
             android:label="Meu Perfil" />
 
         <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="false" />
 
@@ -49,6 +52,11 @@
             android:name=".OnboardingActivity"
             android:exported="false"
             android:label="Perfil" />
+
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false"
+            android:label="Cadastro" />
 
     </application>
 

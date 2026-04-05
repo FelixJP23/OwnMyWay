@@ -22,8 +22,8 @@ import androidx.lifecycle.lifecycleScope
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.launch
 import android.util.Log
-import com.example.ownmyway.network.UserProfile
 import io.github.jan.supabase.auth.auth
+import com.example.ownmyway.network.UserProfile
 
 class SplashActivity : AppCompatActivity() {
 
@@ -41,7 +41,7 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        setContentView(R.layout.activity_splash)
         window.decorView.systemUiVisibility = (
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -61,8 +61,10 @@ class SplashActivity : AppCompatActivity() {
         btnRegister      = findViewById(R.id.btnRegister)
 
         // Both buttons go to MainActivity for now
-        btnLogin.setOnClickListener { goToMain() }
-        btnRegister.setOnClickListener { goToMain() }
+        btnLogin.setOnClickListener { goToLogin() }
+        btnRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+        }
 
         testSupabaseConnection()
         startAnimationSequence()
@@ -108,6 +110,12 @@ class SplashActivity : AppCompatActivity() {
             }
             finish()
         }
+    }
+
+    private fun goToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish() // Opcional: fecha a tela atual para não voltar ao apertar 'back'
     }
 
     private fun startAnimationSequence() {
