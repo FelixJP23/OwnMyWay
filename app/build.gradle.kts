@@ -2,8 +2,8 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
-
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
@@ -77,6 +77,7 @@ dependencies {
     // Ciclo de vida e Corrotinas
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Google Maps
     implementation("com.google.android.gms:play-services-maps:20.0.0")
