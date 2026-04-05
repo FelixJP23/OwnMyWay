@@ -14,6 +14,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.launch
+
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var etName: EditText
@@ -35,11 +36,9 @@ class RegisterActivity : AppCompatActivity() {
         btnRegister = findViewById(R.id.btnRegister)
         tvLogin = findViewById(R.id.tvLogin)
 
-        btnRegister.setOnClickListener {
-            registerUser()
-        }
-
+        btnRegister.setOnClickListener { registerUser() }
         tvLogin.setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
     }
@@ -56,25 +55,21 @@ class RegisterActivity : AppCompatActivity() {
                 etName.requestFocus()
                 return
             }
-
             email.isEmpty() -> {
                 etEmail.error = "Digite seu e-mail"
                 etEmail.requestFocus()
                 return
             }
-
             !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                 etEmail.error = "E-mail inválido"
                 etEmail.requestFocus()
                 return
             }
-
             password.length < 6 -> {
                 etPassword.error = "A senha deve ter pelo menos 6 caracteres"
                 etPassword.requestFocus()
                 return
             }
-
             password != confirmPassword -> {
                 etConfirmPassword.error = "As senhas não coincidem"
                 etConfirmPassword.requestFocus()
@@ -97,7 +92,6 @@ class RegisterActivity : AppCompatActivity() {
                 }
 
                 val user = SupabaseClient.client.auth.currentUserOrNull()
-
                 if (user == null) {
                     setLoading(false)
                     Toast.makeText(
@@ -108,13 +102,27 @@ class RegisterActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                SupabaseClient.client.postgrest["profiles"].update(
-                    {
-                        set("full_name", name)
+                val existingProfiles = SupabaseClient.client.postgrest["profiles"]
+                    .select {
+                        filter { eq("id", user.id) }
                     }
-                ) {
-                    filter {
-                        eq("id", user.id)
+                    .decodeList<UserProfile>()
+
+                if (existingProfiles.isEmpty()) {
+                    SupabaseClient.client.postgrest["profiles"].insert(
+                        UserProfile(
+                            id = user.id,
+                            full_name = name,
+                            onboarding_completed = false
+                        )
+                    )
+                } else {
+                    SupabaseClient.client.postgrest["profiles"].update(
+                        {
+                            set("full_name", name)
+                        }
+                    ) {
+                        filter { eq("id", user.id) }
                     }
                 }
 

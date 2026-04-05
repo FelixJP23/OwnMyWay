@@ -219,21 +219,20 @@ class ProfileActivity : AppCompatActivity() {
                 val uploadedAvatarUrl = uploadAvatarIfNeeded(userId)
                 val finalAvatarUrl = uploadedAvatarUrl ?: currentAvatarUrl
 
-                val profileToUpdate = UserProfile(
-                    id = userId,
-                    full_name = fullName,
-                    onboarding_completed = true,
-                    budget_level = budgetLevel,
-                    travel_pace = travelPace,
-                    interests = selectedStyles,
-                    preferred_transport = currentPreferredTransport,
-                    avatar_url = finalAvatarUrl,
-                    username = username,
-                    bio = bio.ifBlank { null },
-                    last_destination = lastDestination
-                )
-
-                SupabaseClient.client.postgrest["profiles"].update(profileToUpdate) {
+                SupabaseClient.client.postgrest["profiles"].update(
+                    {
+                        set("full_name", fullName)
+                        set("onboarding_completed", true)
+                        set("budget_level", budgetLevel)
+                        set("travel_pace", travelPace)
+                        set("interests", selectedStyles)
+                        set("preferred_transport", currentPreferredTransport)
+                        set("avatar_url", finalAvatarUrl)
+                        set("username", username)
+                        set("bio", bio.ifBlank { null })
+                        set("last_destination", lastDestination)
+                    }
+                ) {
                     filter { eq("id", userId) }
                 }
 
@@ -264,11 +263,11 @@ class ProfileActivity : AppCompatActivity() {
         val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
         val path = "$userId/avatar_${UUID.randomUUID()}.jpg"
 
-        SupabaseClient.client.storage["avatars"].upload(path, bytes) {
+        SupabaseClient.client.storage.from("avatars").upload(path, bytes) {
             upsert = true
         }
 
-        return SupabaseClient.client.storage["avatars"].publicUrl(path)
+        return SupabaseClient.client.storage.from("avatars").publicUrl(path)
     }
 
     private fun renderStyleChips() {

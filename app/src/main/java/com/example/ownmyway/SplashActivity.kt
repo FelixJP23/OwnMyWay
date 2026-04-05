@@ -18,12 +18,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
-import androidx.lifecycle.lifecycleScope
-import io.github.jan.supabase.postgrest.postgrest
-import kotlinx.coroutines.launch
 import android.util.Log
-import io.github.jan.supabase.auth.auth
-import com.example.ownmyway.network.UserProfile
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity() {
 
@@ -42,32 +39,37 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+
         window.decorView.systemUiVisibility = (
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 )
         window.statusBarColor = Color.TRANSPARENT
 
-        setContentView(R.layout.activity_splash)
-
-        rootLayout       = findViewById(R.id.rootLayout)
-        welcomePhase     = findViewById(R.id.welcomePhase)
-        mainPhase        = findViewById(R.id.mainPhase)
-        welcomeText      = findViewById(R.id.welcomeText)
+        rootLayout = findViewById(R.id.rootLayout)
+        welcomePhase = findViewById(R.id.welcomePhase)
+        mainPhase = findViewById(R.id.mainPhase)
+        welcomeText = findViewById(R.id.welcomeText)
         welcomeUnderline = findViewById(R.id.welcomeUnderline)
-        logoImage        = findViewById(R.id.logoImage)
-        tagline          = findViewById(R.id.tagline)
-        btnLogin         = findViewById(R.id.btnLogin)
-        btnRegister      = findViewById(R.id.btnRegister)
+        logoImage = findViewById(R.id.logoImage)
+        tagline = findViewById(R.id.tagline)
+        btnLogin = findViewById(R.id.btnLogin)
+        btnRegister = findViewById(R.id.btnRegister)
 
-        // Both buttons go to MainActivity for now
-        btnLogin.setOnClickListener { goToLogin() }
-        btnRegister.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
+        val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
+
+        if (skipAnim) {
+            welcomePhase.visibility = View.GONE
+            mainPhase.visibility = View.VISIBLE
+            rootLayout.setBackgroundResource(R.drawable.bg_purple_gradient)
+        } else {
+            startAnimationSequence()
         }
 
+        btnLogin.setOnClickListener { goToLogin() }
+        btnRegister.setOnClickListener { goToRegister() }
+
         testSupabaseConnection()
-        startAnimationSequence()
     }
 
     private fun testSupabaseConnection() {
@@ -75,47 +77,22 @@ class SplashActivity : AppCompatActivity() {
             try {
                 val client = SupabaseClient.client
                 Log.d("SupabaseTest", "Client initialized: $client")
-                // Teste simples de conexão (opcional, requer tabela existente)
-                // client.postgrest["test"].select() 
             } catch (e: Exception) {
                 Log.e("SupabaseTest", "Connection error: ${e.message}")
             }
         }
     }
 
-    private fun goToMain() {
-        lifecycleScope.launch {
-            try {
-                val user = SupabaseClient.client.auth.currentUserOrNull()
-                if (user != null) {
-                    val profile = SupabaseClient.client.postgrest["profiles"]
-                        .select {
-                            filter {
-                                eq("id", user.id)
-                            }
-                        }.decodeSingle<UserProfile>()
-
-                    if (profile.onboarding_completed) {
-                        startActivity(Intent(this@SplashActivity, MainActivity::class.java))
-                    } else {
-                        startActivity(Intent(this@SplashActivity, OnboardingActivity::class.java))
-                    }
-                } else {
-                    // Sem login, por enquanto vai para o Main ou Onboarding para teste
-                    startActivity(Intent(this@SplashActivity, OnboardingActivity::class.java))
-                }
-            } catch (e: Exception) {
-                // Se der erro (ex: perfil não existe ainda), manda para onboarding
-                startActivity(Intent(this@SplashActivity, OnboardingActivity::class.java))
-            }
-            finish()
-        }
-    }
-
     private fun goToLogin() {
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
-        finish() // Opcional: fecha a tela atual para não voltar ao apertar 'back'
+        finish()
+    }
+
+    private fun goToRegister() {
+        val intent = Intent(this, RegisterActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
     private fun startAnimationSequence() {
@@ -140,7 +117,8 @@ class SplashActivity : AppCompatActivity() {
                 start()
             }
             ObjectAnimator.ofFloat(welcomeUnderline, "alpha", 0f, 1f).apply {
-                duration = 400; start()
+                duration = 400
+                start()
             }
         }, 1000)
 

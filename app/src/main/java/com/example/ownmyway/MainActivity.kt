@@ -1,13 +1,18 @@
 package com.example.ownmyway
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -15,7 +20,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import android.content.Intent
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -36,36 +40,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         setContentView(R.layout.activity_main)
 
         profilePhoto = findViewById(R.id.profilePhoto)
+        fabAdd = findViewById(R.id.fabAdd)
+
         profilePhoto.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
-        fabAdd = findViewById(R.id.fabAdd)
-
-        // ── Profile photo ──────────────────────────────────────────────────
-        // When your database is ready, load the user photo like this:
-        //
-        // fun loadUserPhoto(photoUrl: String) {
-        //     Glide.with(this)
-        //         .load(photoUrl)
-        //         .circleCrop()
-        //         .placeholder(R.drawable.profile_photo_bg)
-        //         .into(profilePhoto)
-        // }
 
         fabAdd.setOnClickListener {
             // TODO: implement later
         }
 
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.mapFragment) as SupportMapFragment
-        mapFragment.getMapAsync(this)
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment)
+        if (mapFragment is SupportMapFragment) {
+            mapFragment.getMapAsync(this)
+        }
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
         requestLocationPermission()
     }
 
-    // ── Map ready ─────────────────────────────────────────────────────────
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
 
@@ -73,8 +66,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             googleMap.setMapStyle(
                 MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style)
             )
-        } catch (e: Exception) {
-            // Falls back to default style
+        } catch (_: Exception) {
         }
 
         googleMap.uiSettings.apply {
@@ -87,9 +79,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         enableMyLocation()
     }
 
-    // ── Live location ─────────────────────────────────────────────────────
     private fun startLocationUpdates() {
-        // Double-check permission before starting updates
+        if (!::googleMap.isInitialized) return
+
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
@@ -123,19 +115,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun enableMyLocation() {
-        // Explicit permission check — fixes the SecurityException crash
+        if (!::googleMap.isInitialized) return
+
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            googleMap.isMyLocationEnabled = true
-            startLocationUpdates()
+            try {
+                googleMap.isMyLocationEnabled = true
+                startLocationUpdates()
+            } catch (_: Exception) {
+            }
         } else {
             requestLocationPermission()
         }
     }
 
-    // ── Permissions ───────────────────────────────────────────────────────
     private fun requestLocationPermission() {
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
@@ -165,7 +160,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────
     override fun onResume() {
         super.onResume()
         if (::locationCallback.isInitialized &&
