@@ -15,6 +15,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import android.content.Intent
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -35,6 +36,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         setContentView(R.layout.activity_main)
 
         profilePhoto = findViewById(R.id.profilePhoto)
+        profilePhoto.setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+        }
         fabAdd = findViewById(R.id.fabAdd)
 
         // ── Profile photo ──────────────────────────────────────────────────

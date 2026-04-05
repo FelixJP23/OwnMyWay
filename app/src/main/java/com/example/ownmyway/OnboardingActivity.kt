@@ -43,7 +43,7 @@ class OnboardingActivity : AppCompatActivity() {
 
         val adapter = OnboardingStepsAdapter()
         viewPager.adapter = adapter
-        viewPager.isUserInputEnabled = false 
+        viewPager.isUserInputEnabled = false
 
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -61,7 +61,7 @@ class OnboardingActivity : AppCompatActivity() {
         progressBar.max = totalSteps
         progressBar.progress = position + 1
         tvStepIndicator.text = "Passo ${position + 1} de $totalSteps"
-        
+
         btnContinue.text = if (position == totalSteps - 1) "Finalizar e Explorar" else "Continuar"
     }
 
@@ -118,13 +118,13 @@ class OnboardingActivity : AppCompatActivity() {
                         travel_pace = selectedPace,
                         interests = selectedInterests
                     )
-                    
+
                     SupabaseClient.client.postgrest["profiles"].update(profile) {
                         filter { eq("id", user.id) }
                     }
 
                     Toast.makeText(this@OnboardingActivity, "Tudo pronto, vamos nessa!", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this@OnboardingActivity, MainActivity::class.java))
+                    startActivity(Intent(this@OnboardingActivity, ProfileActivity::class.java))
                     finish()
                 }
             } catch (e: Exception) {

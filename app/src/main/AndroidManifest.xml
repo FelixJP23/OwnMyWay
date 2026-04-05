@@ -36,6 +36,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false"
+            android:label="Meu Perfil" />
 
         <activity
             android:name=".MainActivity"
