@@ -55,7 +55,7 @@ class SplashActivity : AppCompatActivity() {
         btnRegister      = findViewById(R.id.btnRegister)
 
         // Both buttons go to MainActivity for now
-        btnLogin.setOnClickListener { goToMain() }
+        btnLogin.setOnClickListener { goToLogin() }
         btnRegister.setOnClickListener { goToMain() }
 
         startAnimationSequence()
@@ -64,6 +64,12 @@ class SplashActivity : AppCompatActivity() {
     private fun goToMain() {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
+    }
+
+    private fun goToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish() // Opcional: fecha a tela atual para não voltar ao apertar 'back'
     }
 
     private fun startAnimationSequence() {

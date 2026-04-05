@@ -12,7 +12,7 @@ if (localPropertiesFile.exists()) {
 
 android {
     namespace = "com.example.ownmyway"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.ownmyway"
