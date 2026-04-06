@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/playfair_display_bold"
+        android:text="Qual o seu estilo de bolso?"
+        android:textColor="@color/omw_purple_mid"
+        android:textSize="32sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Como você gosta de planejar seus gastos?"
+        android:textColor="#666666" />
+
+    <RadioGroup
+        android:id="@+id/radioGroupBudget"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp">
+
+        <RadioButton
+            android:id="@+id/radioBudgetLow"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/card_selector"
+            android:button="@null"
+            android:paddingStart="24dp"
+            android:text="$  Econômico (Mochilão)"
+            android:textColor="@color/omw_purple_mid"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioBudgetMid"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/card_selector"
+            android:button="@null"
+            android:checked="true"
+            android:paddingStart="24dp"
+            android:text="$$  Moderado (Conforto)"
+            android:textColor="@color/omw_purple_mid"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioBudgetHigh"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:background="@drawable/card_selector"
+            android:button="@null"
+            android:paddingStart="24dp"
+            android:text="$$$  Luxo (Experiência)"
+            android:textColor="@color/omw_purple_mid"
+            android:textSize="18sp" />
+    </RadioGroup>
+</LinearLayout>
