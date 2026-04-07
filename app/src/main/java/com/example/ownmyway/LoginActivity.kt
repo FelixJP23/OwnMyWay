@@ -33,19 +33,13 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
+
         btnBack.setOnClickListener {
             val intent = Intent(this, SplashActivity::class.java)
 
-            // 2. ADICIONE AQUI: Esta "etiqueta" avisa a Splash para pular a animação
             intent.putExtra("SKIP_ANIMATION", true)
 
-            // 3. Opcional: Garante que a Splash não crie uma nova instância se já existir
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-
-            // 4. Inicia a transição
             startActivity(intent)
-
-            // 5. Fecha a tela de Login
             finish()
         }
     }

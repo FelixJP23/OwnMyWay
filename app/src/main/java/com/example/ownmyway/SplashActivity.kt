@@ -62,14 +62,27 @@ class SplashActivity : AppCompatActivity() {
         val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
 
         if (skipAnim) {
+
             welcomePhase.visibility = View.GONE
             mainPhase.visibility = View.VISIBLE
             rootLayout.setBackgroundResource(R.drawable.bg_purple_gradient)
+
+            logoImage.alpha = 1f
+            logoImage.scaleX = 1f
+            logoImage.scaleY = 1f
+
+            tagline.alpha = 1f
+            tagline.translationY = 0f
+
+            btnLogin.alpha = 1f
+            btnLogin.translationY = 0f
+
+            btnRegister.alpha = 1f
+            btnRegister.translationY = 0f
         } else {
             startAnimationSequence()
         }
 
-        // Both buttons go to MainActivity for now
         btnLogin.setOnClickListener { goToLogin() }
         btnRegister.setOnClickListener { goToMain() }
 
