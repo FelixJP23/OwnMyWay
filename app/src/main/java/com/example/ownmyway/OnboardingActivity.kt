@@ -43,7 +43,7 @@ class OnboardingActivity : AppCompatActivity() {
 
         val adapter = OnboardingStepsAdapter()
         viewPager.adapter = adapter
-        viewPager.isUserInputEnabled = false 
+        viewPager.isUserInputEnabled = false
 
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -61,7 +61,7 @@ class OnboardingActivity : AppCompatActivity() {
         progressBar.max = totalSteps
         progressBar.progress = position + 1
         tvStepIndicator.text = "Passo ${position + 1} de $totalSteps"
-        
+
         btnContinue.text = if (position == totalSteps - 1) "Finalizar e Explorar" else "Continuar"
     }
 
@@ -111,24 +111,38 @@ class OnboardingActivity : AppCompatActivity() {
             try {
                 val user = SupabaseClient.client.auth.currentUserOrNull()
                 if (user != null) {
-                    val profile = UserProfile(
-                        id = user.id,
-                        onboarding_completed = true,
-                        budget_level = selectedBudget,
-                        travel_pace = selectedPace,
-                        interests = selectedInterests
-                    )
-                    
-                    SupabaseClient.client.postgrest["profiles"].update(profile) {
+                    SupabaseClient.client.postgrest["profiles"].update(
+                        {
+                            set("onboarding_completed", true)
+                            set("budget_level", selectedBudget)
+                            set("travel_pace", selectedPace)
+                            set("interests", selectedInterests)
+                        }
+                    ) {
                         filter { eq("id", user.id) }
                     }
 
-                    Toast.makeText(this@OnboardingActivity, "Tudo pronto, vamos nessa!", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this@OnboardingActivity, MainActivity::class.java))
+                    Toast.makeText(
+                        this@OnboardingActivity,
+                        "Tudo pronto, vamos nessa!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    startActivity(Intent(this@OnboardingActivity, ProfileActivity::class.java))
                     finish()
+                } else {
+                    Toast.makeText(
+                        this@OnboardingActivity,
+                        "Usuário não autenticado.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@OnboardingActivity, "Erro ao salvar: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this@OnboardingActivity,
+                    "Erro ao salvar: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
