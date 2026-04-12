@@ -18,6 +18,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
+import android.util.Log
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity() {
 
@@ -35,6 +38,7 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_splash)
 
         window.decorView.systemUiVisibility = (
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
@@ -42,27 +46,52 @@ class SplashActivity : AppCompatActivity() {
                 )
         window.statusBarColor = Color.TRANSPARENT
 
-        setContentView(R.layout.activity_splash)
-
-        rootLayout       = findViewById(R.id.rootLayout)
-        welcomePhase     = findViewById(R.id.welcomePhase)
-        mainPhase        = findViewById(R.id.mainPhase)
-        welcomeText      = findViewById(R.id.welcomeText)
+        rootLayout = findViewById(R.id.rootLayout)
+        welcomePhase = findViewById(R.id.welcomePhase)
+        mainPhase = findViewById(R.id.mainPhase)
+        welcomeText = findViewById(R.id.welcomeText)
         welcomeUnderline = findViewById(R.id.welcomeUnderline)
-        logoImage        = findViewById(R.id.logoImage)
-        tagline          = findViewById(R.id.tagline)
-        btnLogin         = findViewById(R.id.btnLogin)
-        btnRegister      = findViewById(R.id.btnRegister)
+        logoImage = findViewById(R.id.logoImage)
+        tagline = findViewById(R.id.tagline)
+        btnLogin = findViewById(R.id.btnLogin)
+        btnRegister = findViewById(R.id.btnRegister)
 
-        // Both buttons go to MainActivity for now
-        btnLogin.setOnClickListener { goToMain() }
-        btnRegister.setOnClickListener { goToMain() }
+        val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
 
-        startAnimationSequence()
+        if (skipAnim) {
+            welcomePhase.visibility = View.GONE
+            mainPhase.visibility = View.VISIBLE
+            rootLayout.setBackgroundResource(R.drawable.bg_purple_gradient)
+        } else {
+            startAnimationSequence()
+        }
+
+        btnLogin.setOnClickListener { goToLogin() }
+        btnRegister.setOnClickListener { goToRegister() }
+
+        testSupabaseConnection()
     }
 
-    private fun goToMain() {
-        startActivity(Intent(this, MainActivity::class.java))
+    private fun testSupabaseConnection() {
+        lifecycleScope.launch {
+            try {
+                val client = SupabaseClient.client
+                Log.d("SupabaseTest", "Client initialized: $client")
+            } catch (e: Exception) {
+                Log.e("SupabaseTest", "Connection error: ${e.message}")
+            }
+        }
+    }
+
+    private fun goToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+
+    private fun goToRegister() {
+        val intent = Intent(this, RegisterActivity::class.java)
+        startActivity(intent)
         finish()
     }
 
@@ -88,7 +117,8 @@ class SplashActivity : AppCompatActivity() {
                 start()
             }
             ObjectAnimator.ofFloat(welcomeUnderline, "alpha", 0f, 1f).apply {
-                duration = 400; start()
+                duration = 400
+                start()
             }
         }, 1000)
 

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/omw_white">
+
+    <!-- Barra de Progresso no topo -->
+    <ProgressBar
+        android:id="@+id/onboardingProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_margin="16dp"
+        android:max="3"
+        android:progress="1"
+        android:progressTint="@color/omw_purple_main" />
+
+    <!-- O "Contêiner" das perguntas -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPagerOnboarding"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/layoutFooter"
+        android:layout_below="@id/onboardingProgress" />
+
+    <!-- Rodapé com botão -->
+    <LinearLayout
+        android:id="@+id/layoutFooter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <Button
+            android:id="@+id/btnContinue"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:backgroundTint="@color/omw_purple_mid"
+            android:fontFamily="@font/playfair_display_bold"
+            android:text="Continuar"
+            android:textAllCaps="false"
+            android:textColor="@color/omw_white"
+            android:textSize="18sp"
+            app:cornerRadius="16dp" />
+            
+        <TextView
+            android:id="@+id/tvStepIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="12dp"
+            android:text="Passo 1 de 3"
+            android:textColor="#999999" />
+    </LinearLayout>
+
+</RelativeLayout>
