@@ -4,15 +4,11 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Looper
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -23,156 +19,102 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    private lateinit var googleMap: GoogleMap
+    private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private lateinit var profilePhoto: ImageView
-    private lateinit var fabAdd: FloatingActionButton
-
-    private var isFirstLocation = true
-
-    companion object {
-        private const val LOCATION_PERMISSION_REQUEST = 1001
-    }
+    private var locationInitialized = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        profilePhoto = findViewById(R.id.profilePhoto)
-        fabAdd = findViewById(R.id.fabAdd)
-
-        profilePhoto.setOnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
-        }
-
-        fabAdd.setOnClickListener {
-            // TODO: implement later
-        }
-
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment)
-        if (mapFragment is SupportMapFragment) {
-            mapFragment.getMapAsync(this)
-        }
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+
+        // Camera FAB → opens CameraActivity
+        findViewById<FloatingActionButton>(R.id.fabCamera).setOnClickListener {
+            startActivity(Intent(this, CameraActivity::class.java))
+        }
+
+        // Add FAB (no action yet)
+        findViewById<FloatingActionButton>(R.id.fabAdd).setOnClickListener {
+            // TODO: new route
+        }
+
+        // Profile photo (no action yet)
+        findViewById<ImageView>(R.id.imgProfile).setOnClickListener {
+            // TODO: open profile
+        }
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        map = googleMap
+
+        try {
+            val style = MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style)
+            map.setMapStyle(style)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        map.uiSettings.isZoomControlsEnabled = false
+        map.uiSettings.isMyLocationButtonEnabled = false
+
         requestLocationPermission()
     }
 
-    override fun onMapReady(map: GoogleMap) {
-        googleMap = map
-
-        try {
-            googleMap.setMapStyle(
-                MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style)
+    private fun requestLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            startLocationUpdates()
+        } else {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                200
             )
-        } catch (_: Exception) {
         }
-
-        googleMap.uiSettings.apply {
-            isZoomControlsEnabled = false
-            isMyLocationButtonEnabled = false
-            isCompassEnabled = false
-            isMapToolbarEnabled = false
-        }
-
-        enableMyLocation()
     }
 
     private fun startLocationUpdates() {
-        if (!::googleMap.isInitialized) return
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) return
 
-        if (ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) return
+        map.isMyLocationEnabled = true
 
-        val request = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY, 3000L
-        ).setMinUpdateIntervalMillis(1500L).build()
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 3000).build()
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 val location = result.lastLocation ?: return
                 val latLng = LatLng(location.latitude, location.longitude)
-
-                if (isFirstLocation) {
-                    googleMap.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(latLng, 17f)
-                    )
-                    isFirstLocation = false
-                } else {
-                    googleMap.animateCamera(
-                        CameraUpdateFactory.newLatLng(latLng)
-                    )
+                if (!locationInitialized) {
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                    locationInitialized = true
                 }
             }
         }
 
-        fusedLocationClient.requestLocationUpdates(
-            request, locationCallback, mainLooper
-        )
-    }
-
-    private fun enableMyLocation() {
-        if (!::googleMap.isInitialized) return
-
-        if (ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            try {
-                googleMap.isMyLocationEnabled = true
-                startLocationUpdates()
-            } catch (_: Exception) {
-            }
-        } else {
-            requestLocationPermission()
-        }
-    }
-
-    private fun requestLocationPermission() {
-        if (ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                LOCATION_PERMISSION_REQUEST
-            )
-        }
+        fusedLocationClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
     }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<out String>,
+        permissions: Array<String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST &&
-            grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
-        ) {
-            if (::googleMap.isInitialized) enableMyLocation()
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (::locationCallback.isInitialized &&
-            ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (requestCode == 200 && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
             startLocationUpdates()
         }
     }
 
-    override fun onPause() {
-        super.onPause()
+    override fun onDestroy() {
+        super.onDestroy()
         if (::locationCallback.isInitialized) {
             fusedLocationClient.removeLocationUpdates(locationCallback)
         }
