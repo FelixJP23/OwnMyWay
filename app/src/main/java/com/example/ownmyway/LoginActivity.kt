@@ -2,9 +2,12 @@ package com.example.ownmyway
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -13,15 +16,54 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 1. REMOVE A TARJA PRETA (ActionBar)
+        supportActionBar?.hide()
+
         setContentView(R.layout.activity_login)
 
+        // 2. Inicialização das Views
+        val btnBack = findViewById<ImageButton>(R.id.btnBack)
+        val imgLogo = findViewById<View>(R.id.logoImage)
         val editEmail = findViewById<EditText>(R.id.editEmail)
         val editPassword = findViewById<EditText>(R.id.editPassword)
+        val txtForgotPassword = findViewById<TextView>(R.id.txtForgotPassword)
         val btnEnter = findViewById<Button>(R.id.btnEnter)
-        val btnBack = findViewById<ImageButton>(R.id.btnBack)
+        // INSERÇÃO AQUI: Vincular o novo TextView
+        val txtRegisterLink = findViewById<TextView>(R.id.txtRegisterLink)
 
+        // 3. Configuração do Estado Inicial
+        btnBack.alpha = 1f
+
+        // INSERÇÃO AQUI: Adicionar 'txtRegisterLink' na lista para começar invisível
+        val viewsToAnimate = listOf(imgLogo, editEmail, editPassword, txtForgotPassword, btnEnter, txtRegisterLink)
+        viewsToAnimate.forEach { view ->
+            view.alpha = 0f
+            view.translationY = 40f
+        }
+
+        // 4. Início das Animações
+        animateViewIn(imgLogo, 100)
+        animateViewIn(editEmail, 200)
+        animateViewIn(editPassword, 300)
+        animateViewIn(txtForgotPassword, 400)
+        animateViewIn(btnEnter, 500)
+        // INSERÇÃO AQUI: Animá-lo por último na cascata
+        animateViewIn(txtRegisterLink, 600)
+
+        // 5. Lógica do Botão de Voltar
+        btnBack.setOnClickListener {
+            val intent = Intent(this, SplashActivity::class.java)
+            intent.putExtra("SKIP_ANIMATION", true)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            startActivity(intent)
+            finish()
+        }
+
+        // 6. Lógica de Login
         btnEnter.setOnClickListener {
             val email = editEmail.text.toString()
             val password = editPassword.text.toString()
@@ -33,15 +75,21 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-
-        btnBack.setOnClickListener {
-            val intent = Intent(this, SplashActivity::class.java)
-
-            intent.putExtra("SKIP_ANIMATION", true)
-
+        // INSERÇÃO AQUI: Lógica para abrir a tela de Registro
+        txtRegisterLink.setOnClickListener {
+            val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
-            finish()
         }
+    }
+
+    private fun animateViewIn(view: View, delay: Long) {
+        view.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(500)
+            .setStartDelay(delay)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
     }
 
     private fun loginUser(emailText: String, passwordText: String) {
@@ -51,17 +99,11 @@ class LoginActivity : AppCompatActivity() {
                     email = emailText
                     password = passwordText
                 }
-
                 Toast.makeText(this@LoginActivity, "Bem-vindo!", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                 finish()
-
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@LoginActivity,
-                    "Erro: Usuário ou senha inválidos",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(this@LoginActivity, "E-mail ou senha inválidos", Toast.LENGTH_LONG).show()
             }
         }
     }
