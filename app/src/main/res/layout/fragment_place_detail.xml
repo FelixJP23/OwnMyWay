@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+
+    <!-- Drag handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        android:background="#CCCCCC"/>
+
+    <!-- Photo Carousel -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPagerPhotos"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"/>
+
+    <!-- Dot indicators -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:layout_gravity="center_horizontal"
+        app:tabBackground="@drawable/bg_dot_selector"
+        app:tabGravity="center"
+        app:tabIndicatorHeight="0dp"
+        app:tabMaxWidth="16dp"
+        app:tabMinWidth="16dp"
+        app:tabPaddingStart="4dp"
+        app:tabPaddingEnd="4dp"
+        app:tabSelectedTextColor="#4A2080"
+        app:tabTextColor="#CCCCCC"/>
+
+    <!-- Place info -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="32dp">
+
+        <!-- Name -->
+        <TextView
+            android:id="@+id/tvPlaceName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:textColor="#1A1A1A"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"/>
+
+        <!-- Rating -->
+        <TextView
+            android:id="@+id/tvRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:textColor="#555555"
+            android:textSize="14sp"/>
+
+        <!-- Address -->
+        <TextView
+            android:id="@+id/tvAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:textColor="#555555"
+            android:textSize="14sp"
+            android:lineSpacingExtra="2dp"/>
+
+        <!-- Open status -->
+        <TextView
+            android:id="@+id/tvOpenStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:textSize="13sp"
+            android:textStyle="bold"/>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="20dp"
+            android:background="#F0F0F0"/>
+
+        <!-- Take me button -->
+        <Button
+            android:id="@+id/btnTakeMe"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:backgroundTint="#4A2080"
+            android:text="Take me to it →"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium"
+            android:stateListAnimator="@null"/>
+
+    </LinearLayout>
+</LinearLayout>
