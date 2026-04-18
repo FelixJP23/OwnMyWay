@@ -8,8 +8,8 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,6 +27,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
+import org.json.JSONArray
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -37,19 +39,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private var currentLatLng: LatLng? = null
 
     private lateinit var placesClient: PlacesClient
-    private val placeMarkers = mutableListOf<Marker>()
-    private val markerPlaceMap = mutableMapOf<String, NearbyPlace>()
-    private var routePolyline: Polyline? = null
+    val placeMarkers   = mutableListOf<Marker>()
+    val markerPlaceMap = mutableMapOf<String, NearbyPlace>()
+    var routePolyline: Polyline? = null
 
-    private val okHttpClient = OkHttpClient()
-    private val gson = Gson()
+    val okHttpClient = OkHttpClient()
+    val gson         = Gson()
 
-    private val mapsApiKey: String by lazy {
+    // ── Last built route (for offline download) ───────────────────────────
+    private var lastRouteStops: List<NearbyPlace> = emptyList()
+    private var lastRouteId:    String             = ""
+    private lateinit var fabOffline: FloatingActionButton
+
+    val mapsApiKey: String by lazy {
         packageManager
             .getApplicationInfo(packageName, PackageManager.GET_META_DATA)
             .metaData.getString("com.google.android.geo.API_KEY") ?: ""
     }
 
+    // ── Autocomplete launcher ─────────────────────────────────────────────
     private val searchLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -62,9 +70,110 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    // ── Route launcher ────────────────────────────────────────────────────
+    private val routeLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val data           = result.data!!
+            val travelRhythm   = data.getStringExtra("travel_rhythm")  ?: "moderate"
+            val spendingLevel  = data.getStringExtra("spending_level") ?: "medium"
+            val hobbies        = data.getStringArrayListExtra("hobbies") ?: arrayListOf()
+            val hotelBreakfast = data.getBooleanExtra("hotel_breakfast", false)
+
+            // Deserialize mandatory stops
+            val mandatoryStops = mutableListOf<NearbyPlace>()
+            val stopsJson = data.getStringExtra("mandatory_stops_json")
+            if (!stopsJson.isNullOrBlank()) {
+                try {
+                    val arr = JSONArray(stopsJson)
+                    for (i in 0 until arr.length()) {
+                        val obj = JSONObject(arr.getString(i))
+                        mandatoryStops.add(NearbyPlace(
+                            place_id = obj.getString("place_id"),
+                            name     = obj.getString("name"),
+                            geometry = PlaceGeometry(PlaceLocation(
+                                obj.getDouble("lat"), obj.getDouble("lng")
+                            )),
+                            vicinity = obj.optString("vicinity")
+                        ))
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Mandatory stops parse error", e)
+                }
+            }
+
+            val prefs = RoutePreferences(
+                mandatoryStops  = mandatoryStops,
+                hotelBreakfast  = hotelBreakfast,
+                selectedHobbies = hobbies,
+                travelRhythm    = travelRhythm,
+                spendingLevel   = spendingLevel
+            )
+
+            val origin = currentLatLng ?: map.cameraPosition.target
+
+            CoroutineScope(Dispatchers.IO).launch {
+                val algorithm   = RouteAlgorithm(mapsApiKey, okHttpClient, gson)
+                val routeResult = algorithm.buildRoute(origin, prefs)
+
+                withContext(Dispatchers.Main) {
+                    routePolyline?.remove()
+                    placeMarkers.forEach { it.remove() }
+                    placeMarkers.clear()
+                    markerPlaceMap.clear()
+
+                    routeResult.stops.forEachIndexed { idx, place ->
+                        val latLng = LatLng(
+                            place.geometry.location.lat,
+                            place.geometry.location.lng
+                        )
+                        val marker = map.addMarker(
+                            MarkerOptions()
+                                .position(latLng)
+                                .title("${idx + 1}. ${place.name}")
+                                .icon(BitmapDescriptorFactory.defaultMarker(
+                                    BitmapDescriptorFactory.HUE_VIOLET))
+                        ) ?: return@forEachIndexed
+                        placeMarkers.add(marker)
+                        markerPlaceMap[marker.id] = place
+                    }
+
+                    if (routeResult.polylineOptions != null) {
+                        routePolyline = map.addPolyline(routeResult.polylineOptions)
+                    }
+
+                    if (placeMarkers.isNotEmpty()) {
+                        val bounds = placeMarkers
+                            .fold(LatLngBounds.builder()) { b, m -> b.include(m.position) }
+                            .build()
+                        map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120))
+                    }
+
+                    // Store route for offline download and show the FAB
+                    if (routeResult.stops.isNotEmpty()) {
+                        lastRouteStops = routeResult.stops
+                        lastRouteId    = System.currentTimeMillis().toString()
+                        fabOffline.visibility = View.VISIBLE
+                    } else {
+                        fabOffline.visibility = View.GONE
+                        Toast.makeText(
+                            this@MainActivity,
+                            "No places found for your preferences. Try different hobbies!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+        }
+    }
+
+    // ── onCreate ──────────────────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        MealNotificationReceiver.createChannel(this)
 
         if (!Places.isInitialized()) Places.initialize(applicationContext, mapsApiKey)
         placesClient = Places.createClient(this)
@@ -74,14 +183,32 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         (supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
             .getMapAsync(this)
 
+        fabOffline = findViewById(R.id.fabOffline)
+
         findViewById<TextView>(R.id.tvSearch).setOnClickListener { openAutocomplete() }
+
         findViewById<ImageButton>(R.id.btnFilter).setOnClickListener {
             FilterBottomSheet().show(supportFragmentManager, "filter")
         }
+
         findViewById<FloatingActionButton>(R.id.fabCamera).setOnClickListener {
             startActivity(Intent(this, CameraActivity::class.java))
         }
-        findViewById<FloatingActionButton>(R.id.fabAdd).setOnClickListener { /* TODO */ }
+
+        findViewById<FloatingActionButton>(R.id.fabAdd).setOnClickListener {
+            routeLauncher.launch(Intent(this, CreateRouteActivity::class.java))
+        }
+
+        fabOffline.setOnClickListener {
+            if (lastRouteStops.isEmpty()) {
+                Toast.makeText(this, "Create a route first!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            startActivity(Intent(this, OfflineMapActivity::class.java).apply {
+                putExtra(OfflineMapActivity.EXTRA_ROUTE_ID,   lastRouteId)
+                putExtra(OfflineMapActivity.EXTRA_STOPS_JSON, buildStopsJson(lastRouteStops))
+            })
+        }
 
         supportFragmentManager.setFragmentResultListener("filter_result", this) { _, bundle ->
             val names = bundle.getStringArrayList("categories") ?: return@setFragmentResultListener
@@ -90,20 +217,32 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         supportFragmentManager.setFragmentResultListener("route_request", this) { _, bundle ->
-            drawRoute(LatLng(bundle.getDouble("lat"), bundle.getDouble("lng")), bundle.getString("name", ""))
+            drawRoute(
+                LatLng(bundle.getDouble("lat"), bundle.getDouble("lng")),
+                bundle.getString("name", "")
+            )
+        }
+
+        // Handle meal notification tap → find nearest restaurant
+        intent?.getStringExtra("meal_suggestion")?.let {
+            searchNearby(listOf(PlaceCategory.RESTAURANTS))
         }
     }
 
+    // ── Map ready ─────────────────────────────────────────────────────────
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-        try { map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style)) } catch (e: Exception) {}
+        try {
+            map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style))
+        } catch (e: Exception) {}
         map.uiSettings.isZoomControlsEnabled     = false
         map.uiSettings.isMyLocationButtonEnabled = false
 
         map.setOnMarkerClickListener { marker ->
             val place = markerPlaceMap[marker.id] ?: return@setOnMarkerClickListener false
-            val photoUrls = ArrayList((place.photos ?: emptyList()).take(5)
-                .map { getPhotoUrl(it.photo_reference) })
+            val photoUrls = ArrayList(
+                (place.photos ?: emptyList()).take(5).map { getPhotoUrl(it.photo_reference) }
+            )
             PlaceDetailBottomSheet.newInstance(
                 name      = place.name,
                 rating    = place.rating ?: 0.0,
@@ -118,11 +257,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         requestLocationPermission()
     }
 
+    // ── Location ──────────────────────────────────────────────────────────
     private fun requestLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) startLocationUpdates()
-        else ActivityCompat.requestPermissions(this,
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 200)
+        else ActivityCompat.requestPermissions(
+            this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 200
+        )
     }
 
     private fun startLocationUpdates() {
@@ -143,15 +284,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         fusedLocationClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
     }
 
+    // ── Autocomplete ──────────────────────────────────────────────────────
     private fun openAutocomplete() {
-        val fields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
-        searchLauncher.launch(Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields).build(this))
+        val fields = listOf(
+            Place.Field.ID, Place.Field.NAME,
+            Place.Field.LAT_LNG, Place.Field.ADDRESS
+        )
+        searchLauncher.launch(
+            Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields).build(this)
+        )
     }
 
-    private fun searchNearby(categories: List<PlaceCategory>) {
+    // ── Nearby search (filter) ────────────────────────────────────────────
+    fun searchNearby(categories: List<PlaceCategory>) {
         val center = currentLatLng ?: map.cameraPosition.target
         placeMarkers.forEach { it.remove() }
-        placeMarkers.clear(); markerPlaceMap.clear()
+        placeMarkers.clear()
+        markerPlaceMap.clear()
 
         CoroutineScope(Dispatchers.IO).launch {
             val allPlaces = mutableListOf<NearbyPlace>()
@@ -165,15 +314,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
                 allPlaces.forEach { place ->
                     val latLng = LatLng(place.geometry.location.lat, place.geometry.location.lng)
-                    val marker = map.addMarker(MarkerOptions()
-                        .position(latLng).title(place.name)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET))
+                    val marker = map.addMarker(
+                        MarkerOptions()
+                            .position(latLng).title(place.name)
+                            .icon(BitmapDescriptorFactory.defaultMarker(
+                                BitmapDescriptorFactory.HUE_VIOLET))
                     ) ?: return@forEach
-                    placeMarkers.add(marker); markerPlaceMap[marker.id] = place
+                    placeMarkers.add(marker)
+                    markerPlaceMap[marker.id] = place
                 }
                 if (placeMarkers.isNotEmpty())
                     map.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        LatLng(allPlaces[0].geometry.location.lat, allPlaces[0].geometry.location.lng), 13f))
+                        LatLng(allPlaces[0].geometry.location.lat,
+                               allPlaces[0].geometry.location.lng), 13f))
             }
         }
     }
@@ -182,23 +335,32 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         withContext(Dispatchers.IO) {
             try {
                 val url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
-                    "?location=${center.latitude},${center.longitude}&radius=3000&type=$type&key=$mapsApiKey"
-                val body = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
-                    .execute().body?.string() ?: return@withContext emptyList()
+                    "?location=${center.latitude},${center.longitude}" +
+                    "&radius=3000&type=$type&key=$mapsApiKey"
+                val body = okHttpClient.newCall(
+                    okhttp3.Request.Builder().url(url).build()
+                ).execute().body?.string() ?: return@withContext emptyList()
                 gson.fromJson(body, NearbySearchResponse::class.java).results ?: emptyList()
-            } catch (e: Exception) { Log.e("MainActivity", "Nearby: $type", e); emptyList() }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Nearby: $type", e); emptyList()
+            }
         }
 
+    // ── Place detail (from autocomplete) ──────────────────────────────────
     private fun fetchAndShowPlaceDetail(placeId: String, name: String, latLng: LatLng) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val url = "https://maps.googleapis.com/maps/api/place/details/json" +
-                    "?place_id=$placeId&fields=photos,rating,formatted_address,opening_hours&key=$mapsApiKey"
-                val body = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
-                    .execute().body?.string() ?: return@launch
+                    "?place_id=$placeId" +
+                    "&fields=photos,rating,formatted_address,opening_hours" +
+                    "&key=$mapsApiKey"
+                val body = okHttpClient.newCall(
+                    okhttp3.Request.Builder().url(url).build()
+                ).execute().body?.string() ?: return@launch
                 val details = gson.fromJson(body, PlaceDetailsResponse::class.java).result
-                val photoUrls = ArrayList((details?.photos ?: emptyList()).take(5)
-                    .map { getPhotoUrl(it.photo_reference) })
+                val photoUrls = ArrayList(
+                    (details?.photos ?: emptyList()).take(5).map { getPhotoUrl(it.photo_reference) }
+                )
                 withContext(Dispatchers.Main) {
                     PlaceDetailBottomSheet.newInstance(
                         name      = name,
@@ -210,22 +372,28 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                         lng       = latLng.longitude
                     ).show(supportFragmentManager, "place_detail")
                 }
-            } catch (e: Exception) { Log.e("MainActivity", "Details error", e) }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Details error", e)
+            }
         }
     }
 
-    private fun drawRoute(destination: LatLng, placeName: String) {
+    // ── Draw single route (from place detail "Take me to it") ─────────────
+    fun drawRoute(destination: LatLng, placeName: String) {
         val origin = currentLatLng ?: run {
-            Toast.makeText(this, "Could not get your location", Toast.LENGTH_SHORT).show(); return
+            Toast.makeText(this, "Could not get your location", Toast.LENGTH_SHORT).show()
+            return
         }
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val url = "https://maps.googleapis.com/maps/api/directions/json" +
                     "?origin=${origin.latitude},${origin.longitude}" +
-                    "&destination=${destination.latitude},${destination.longitude}&key=$mapsApiKey"
-                val body = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
-                    .execute().body?.string() ?: return@launch
-                val routes = org.json.JSONObject(body).getJSONArray("routes")
+                    "&destination=${destination.latitude},${destination.longitude}" +
+                    "&key=$mapsApiKey"
+                val body = okHttpClient.newCall(
+                    okhttp3.Request.Builder().url(url).build()
+                ).execute().body?.string() ?: return@launch
+                val routes = JSONObject(body).getJSONArray("routes")
                 if (routes.length() == 0) {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@MainActivity, "No route found", Toast.LENGTH_SHORT).show()
@@ -235,19 +403,42 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     .getJSONObject("overview_polyline").getString("points")
                 withContext(Dispatchers.Main) {
                     routePolyline?.remove()
-                    routePolyline = map.addPolyline(PolylineOptions()
-                        .addAll(decodePolyline(points))
-                        .color(Color.parseColor("#4A2080")).width(12f).geodesic(true))
-                    val bounds = LatLngBounds.builder().include(origin).include(destination).build()
+                    routePolyline = map.addPolyline(
+                        PolylineOptions()
+                            .addAll(decodePolyline(points))
+                            .color(Color.parseColor("#4A2080"))
+                            .width(12f)
+                            .geodesic(true)
+                    )
+                    val bounds = LatLngBounds.builder()
+                        .include(origin).include(destination).build()
                     map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120))
                     Toast.makeText(this@MainActivity, "Route to $placeName", Toast.LENGTH_SHORT).show()
                 }
-            } catch (e: Exception) { Log.e("MainActivity", "Route error", e) }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Route error", e)
+            }
         }
     }
 
+    // ── Helpers ───────────────────────────────────────────────────────────
     private fun getPhotoUrl(ref: String) =
-        "https://maps.googleapis.com/maps/api/place/photo?photo_reference=$ref&maxwidth=800&key=$mapsApiKey"
+        "https://maps.googleapis.com/maps/api/place/photo" +
+            "?photo_reference=$ref&maxwidth=800&key=$mapsApiKey"
+
+    private fun buildStopsJson(stops: List<NearbyPlace>): String {
+        val arr = JSONArray()
+        stops.forEach { place ->
+            arr.put(JSONObject().apply {
+                put("place_id", place.place_id)
+                put("name",     place.name)
+                put("lat",      place.geometry.location.lat)
+                put("lng",      place.geometry.location.lng)
+                put("vicinity", place.vicinity ?: "")
+            })
+        }
+        return arr.toString()
+    }
 
     private fun decodePolyline(encoded: String): List<LatLng> {
         val result = mutableListOf<LatLng>()
@@ -264,13 +455,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         return result
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 200 && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) startLocationUpdates()
+        if (requestCode == 200 && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED)
+            startLocationUpdates()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::locationCallback.isInitialized) fusedLocationClient.removeLocationUpdates(locationCallback)
+        if (::locationCallback.isInitialized)
+            fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 }
