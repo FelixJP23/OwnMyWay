@@ -8,6 +8,8 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
+import android.view.View
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -15,6 +17,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
@@ -25,6 +28,7 @@ import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 
@@ -66,14 +70,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // 1. Inicialização do Logout
+        val btnLogout = findViewById<Button>(R.id.btnLogout)
+        btnLogout.setOnClickListener {
+            performLogout()
+        }
+
+        // 2. Inicialização do Google Places e Location
         if (!Places.isInitialized()) Places.initialize(applicationContext, mapsApiKey)
         placesClient = Places.createClient(this)
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        // 3. Configuração do Mapa
         (supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
             .getMapAsync(this)
 
+        // 4. Listeners de UI
         findViewById<TextView>(R.id.tvSearch).setOnClickListener { openAutocomplete() }
         findViewById<ImageButton>(R.id.btnFilter).setOnClickListener {
             FilterBottomSheet().show(supportFragmentManager, "filter")
@@ -83,6 +95,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
         findViewById<FloatingActionButton>(R.id.fabAdd).setOnClickListener { /* TODO */ }
 
+        // 5. Fragment Result Listeners
         supportFragmentManager.setFragmentResultListener("filter_result", this) { _, bundle ->
             val names = bundle.getStringArrayList("categories") ?: return@setFragmentResultListener
             val categories = names.mapNotNull { runCatching { PlaceCategory.valueOf(it) }.getOrNull() }
@@ -94,10 +107,27 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    private fun performLogout() {
+        lifecycleScope.launch {
+            try {
+                // Remove a sessão do Supabase no dispositivo
+                SupabaseClient.client.auth.signOut()
+
+                // Volta para a SplashActivity limpando a pilha de telas
+                val intent = Intent(this@MainActivity, SplashActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Erro ao sair", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         try { map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style)) } catch (e: Exception) {}
-        map.uiSettings.isZoomControlsEnabled     = false
+        map.uiSettings.isZoomControlsEnabled = false
         map.uiSettings.isMyLocationButtonEnabled = false
 
         map.setOnMarkerClickListener { marker ->
@@ -117,6 +147,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
         requestLocationPermission()
     }
+
+    // --- MÉTODOS DE LOCALIZAÇÃO E GOOGLE MAPS (Mantidos conforme seu original) ---
 
     private fun requestLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -182,7 +214,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         withContext(Dispatchers.IO) {
             try {
                 val url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
-                    "?location=${center.latitude},${center.longitude}&radius=3000&type=$type&key=$mapsApiKey"
+                        "?location=${center.latitude},${center.longitude}&radius=3000&type=$type&key=$mapsApiKey"
                 val body = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
                     .execute().body?.string() ?: return@withContext emptyList()
                 gson.fromJson(body, NearbySearchResponse::class.java).results ?: emptyList()
@@ -193,7 +225,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val url = "https://maps.googleapis.com/maps/api/place/details/json" +
-                    "?place_id=$placeId&fields=photos,rating,formatted_address,opening_hours&key=$mapsApiKey"
+                        "?place_id=$placeId&fields=photos,rating,formatted_address,opening_hours&key=$mapsApiKey"
                 val body = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
                     .execute().body?.string() ?: return@launch
                 val details = gson.fromJson(body, PlaceDetailsResponse::class.java).result
@@ -221,8 +253,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val url = "https://maps.googleapis.com/maps/api/directions/json" +
-                    "?origin=${origin.latitude},${origin.longitude}" +
-                    "&destination=${destination.latitude},${destination.longitude}&key=$mapsApiKey"
+                        "?origin=${origin.latitude},${origin.longitude}" +
+                        "&destination=${destination.latitude},${destination.longitude}&key=$mapsApiKey"
                 val body = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
                     .execute().body?.string() ?: return@launch
                 val routes = org.json.JSONObject(body).getJSONArray("routes")

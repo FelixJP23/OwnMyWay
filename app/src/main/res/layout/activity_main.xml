@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Full-screen Map -->
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -16,7 +15,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Search Bar Card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardSearch"
         android:layout_width="0dp"
@@ -37,7 +35,6 @@
             android:gravity="center_vertical"
             android:paddingHorizontal="8dp">
 
-            <!-- Filter / Hamburger -->
             <ImageButton
                 android:id="@+id/btnFilter"
                 android:layout_width="40dp"
@@ -47,7 +44,6 @@
                 android:tint="#4A2080"
                 android:contentDescription="Filter"/>
 
-            <!-- Search hint text (clickable) -->
             <TextView
                 android:id="@+id/tvSearch"
                 android:layout_width="0dp"
@@ -62,13 +58,11 @@
                 android:focusable="true"
                 android:clickable="true"/>
 
-            <!-- Profile photo -->
             <ImageView
                 android:id="@+id/imgProfile"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginEnd="4dp"
-                android:background="@drawable/profile_photo_bg"
                 android:src="@android:drawable/ic_menu_myplaces"
                 android:scaleType="centerCrop"
                 android:contentDescription="Profile"/>
@@ -76,7 +70,19 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- FAB Add (bottom-right) -->
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="16dp"
+        android:text="Sair da Conta"
+        android:textSize="12sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="#4A2080"
+        app:layout_constraintTop_toBottomOf="@id/cardSearch"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
         android:layout_width="wrap_content"
@@ -88,7 +94,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- FAB Camera (above fabAdd) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabCamera"
         android:layout_width="wrap_content"

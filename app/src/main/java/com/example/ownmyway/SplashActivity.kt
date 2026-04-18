@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity() {
@@ -40,12 +41,14 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
+        // Configuração de UI (Fullscreen e Barra de Status)
         window.decorView.systemUiVisibility = (
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 )
         window.statusBarColor = Color.TRANSPARENT
 
+        // 1. Inicialização das Views
         rootLayout = findViewById(R.id.rootLayout)
         welcomePhase = findViewById(R.id.welcomePhase)
         mainPhase = findViewById(R.id.mainPhase)
@@ -56,45 +59,57 @@ class SplashActivity : AppCompatActivity() {
         btnLogin = findViewById(R.id.btnLogin)
         btnRegister = findViewById(R.id.btnRegister)
 
-        val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
-
-        if (skipAnim) {
-
-            welcomePhase.visibility = View.GONE
-            mainPhase.visibility = View.VISIBLE
-            rootLayout.setBackgroundResource(R.drawable.bg_purple_gradient)
-
-            logoImage.alpha = 1f
-            logoImage.scaleX = 1f
-            logoImage.scaleY = 1f
-
-            tagline.alpha = 1f
-            tagline.translationY = 0f
-
-            btnLogin.alpha = 1f
-            btnLogin.translationY = 0f
-
-            btnRegister.alpha = 1f
-            btnRegister.translationY = 0f
-        } else {
-            startAnimationSequence()
-        }
-
-        btnLogin.setOnClickListener { goToLogin() }
-        btnRegister.setOnClickListener { goToRegister() }
-
-        testSupabaseConnection()
-    }
-
-    private fun testSupabaseConnection() {
+        // 2. Lógica de "Manter Conectado" e Fluxo do App
         lifecycleScope.launch {
             try {
-                val client = SupabaseClient.client
-                Log.d("SupabaseTest", "Client initialized: $client")
+                // Verifica se existe uma sessão ativa salva no dispositivo
+                val session = SupabaseClient.client.auth.currentSessionOrNull()
+
+                if (session != null) {
+                    // USUÁRIO LOGADO: Vai direto para a tela principal
+                    Log.d("SplashActivity", "Sessão ativa encontrada. Redirecionando...")
+                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    finish()
+                } else {
+                    // USUÁRIO DESLOGADO: Verifica se deve pular animação ou rodar do zero
+                    Log.d("SplashActivity", "Nenhuma sessão ativa. Iniciando fluxo normal.")
+                    val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
+
+                    if (skipAnim) {
+                        showButtonsImmediately()
+                    } else {
+                        startAnimationSequence()
+                    }
+                }
             } catch (e: Exception) {
-                Log.e("SupabaseTest", "Connection error: ${e.message}")
+                Log.e("SplashActivity", "Erro ao verificar sessão: ${e.message}")
+                startAnimationSequence() // Por segurança, roda a splash normal em caso de erro
             }
         }
+
+        // 3. Configuração dos Cliques
+        btnLogin.setOnClickListener { goToLogin() }
+        btnRegister.setOnClickListener { goToRegister() }
+    }
+
+    // Método auxiliar para pular as animações (usado ao voltar do Login/Cadastro)
+    private fun showButtonsImmediately() {
+        welcomePhase.visibility = View.GONE
+        mainPhase.visibility = View.VISIBLE
+        rootLayout.setBackgroundResource(R.drawable.bg_purple_gradient)
+
+        logoImage.alpha = 1f
+        logoImage.scaleX = 1f
+        logoImage.scaleY = 1f
+
+        tagline.alpha = 1f
+        tagline.translationY = 0f
+
+        btnLogin.alpha = 1f
+        btnLogin.translationY = 0f
+
+        btnRegister.alpha = 1f
+        btnRegister.translationY = 0f
     }
 
     private fun goToLogin() {
@@ -108,6 +123,8 @@ class SplashActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+
+    // --- SEQUÊNCIA DE ANIMAÇÕES ORIGINAIS ---
 
     private fun startAnimationSequence() {
         welcomeText.alpha = 0f

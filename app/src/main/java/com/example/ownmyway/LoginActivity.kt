@@ -80,6 +80,17 @@ class LoginActivity : AppCompatActivity() {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
         }
+
+        // 8. Lógica de Esqueci minha Senha
+        txtForgotPassword.setOnClickListener {
+            val email = editEmail.text.toString().trim()
+            if (email.isNotEmpty()) {
+                resetPassword(email)
+            } else {
+                Toast.makeText(this, "Digite seu e-mail para recuperar a senha", Toast.LENGTH_SHORT).show()
+                editEmail.requestFocus()
+            }
+        }
     }
 
     private fun animateViewIn(view: View, delay: Long) {
@@ -104,6 +115,18 @@ class LoginActivity : AppCompatActivity() {
                 finish()
             } catch (e: Exception) {
                 Toast.makeText(this@LoginActivity, "E-mail ou senha inválidos", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun resetPassword(emailText: String) {
+        lifecycleScope.launch {
+            try {
+                // Solicitação de redefinição para o Supabase
+                SupabaseClient.client.auth.resetPasswordForEmail(emailText)
+                Toast.makeText(this@LoginActivity, "E-mail de recuperação enviado!", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                Toast.makeText(this@LoginActivity, "Erro ao enviar e-mail", Toast.LENGTH_SHORT).show()
             }
         }
     }

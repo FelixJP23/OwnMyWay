@@ -4,6 +4,7 @@ import com.example.ownmyway.BuildConfig
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.storage.Storage
 
 object SupabaseClient {
@@ -12,7 +13,9 @@ object SupabaseClient {
         supabaseKey = BuildConfig.SUPABASE_KEY
     ) {
         install(Postgrest)
-        install(Auth)
+        install(Auth) {
+            alwaysAutoRefresh = true
+        }
         install(Storage)
     }
 }
