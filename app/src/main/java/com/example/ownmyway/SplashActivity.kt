@@ -20,6 +20,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity() {
@@ -40,12 +44,14 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
+        // Configuração de UI
         window.decorView.systemUiVisibility = (
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 )
         window.statusBarColor = Color.TRANSPARENT
 
+        // 1. Inicialização das Views
         rootLayout = findViewById(R.id.rootLayout)
         welcomePhase = findViewById(R.id.welcomePhase)
         mainPhase = findViewById(R.id.mainPhase)
@@ -56,42 +62,67 @@ class SplashActivity : AppCompatActivity() {
         btnLogin = findViewById(R.id.btnLogin)
         btnRegister = findViewById(R.id.btnRegister)
 
-        val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
+        // 2. Lógica de "Manter Conectado" com Aguardo de Reidratação
+        lifecycleScope.launch {
+            try {
+                // Aguarda até que o status não seja mais 'Initializing'
+                // Isso garante que o Supabase tentou ler o token do celular
+                val finalStatus = SupabaseClient.client.auth.sessionStatus
+                    .filter { it !is SessionStatus.Initializing }
+                    .first()
 
+                if (finalStatus is SessionStatus.Authenticated) {
+                    Log.d("SplashActivity", "Sessão recuperada com sucesso!")
+                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    finish()
+                } else {
+                    Log.d("SplashActivity", "Nenhuma sessão válida. Iniciando animações.")
+                    handleNavigationFlow()
+                }
+            } catch (e: Exception) {
+                Log.e("SplashActivity", "Erro ao verificar sessão: ${e.message}")
+                handleNavigationFlow()
+            }
+        }
+
+        // 3. Configuração dos Cliques
+        btnLogin.setOnClickListener { goToLogin() }
+        btnRegister.setOnClickListener { goToRegister() }
+    }
+
+    private fun handleNavigationFlow() {
+        val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
         if (skipAnim) {
-            welcomePhase.visibility = View.GONE
-            mainPhase.visibility = View.VISIBLE
-            rootLayout.setBackgroundResource(R.drawable.bg_purple_gradient)
+            showButtonsImmediately()
         } else {
             startAnimationSequence()
         }
-
-        btnLogin.setOnClickListener { goToLogin() }
-        btnRegister.setOnClickListener { goToRegister() }
-
-        testSupabaseConnection()
     }
 
-    private fun testSupabaseConnection() {
-        lifecycleScope.launch {
-            try {
-                val client = SupabaseClient.client
-                Log.d("SupabaseTest", "Client initialized: $client")
-            } catch (e: Exception) {
-                Log.e("SupabaseTest", "Connection error: ${e.message}")
-            }
-        }
+    // --- MÉTODOS DE APOIO E ANIMAÇÕES ---
+
+    private fun showButtonsImmediately() {
+        welcomePhase.visibility = View.GONE
+        mainPhase.visibility = View.VISIBLE
+        rootLayout.setBackgroundResource(R.drawable.bg_purple_gradient)
+        logoImage.alpha = 1f
+        logoImage.scaleX = 1f
+        logoImage.scaleY = 1f
+        tagline.alpha = 1f
+        tagline.translationY = 0f
+        btnLogin.alpha = 1f
+        btnLogin.translationY = 0f
+        btnRegister.alpha = 1f
+        btnRegister.translationY = 0f
     }
 
     private fun goToLogin() {
-        val intent = Intent(this, LoginActivity::class.java)
-        startActivity(intent)
+        startActivity(Intent(this, LoginActivity::class.java))
         finish()
     }
 
     private fun goToRegister() {
-        val intent = Intent(this, RegisterActivity::class.java)
-        startActivity(intent)
+        startActivity(Intent(this, RegisterActivity::class.java))
         finish()
     }
 
@@ -169,7 +200,6 @@ class SplashActivity : AppCompatActivity() {
 
     private fun showMainPhase() {
         mainPhase.visibility = View.VISIBLE
-
         handler.postDelayed({
             AnimatorSet().apply {
                 playTogether(
@@ -182,7 +212,6 @@ class SplashActivity : AppCompatActivity() {
                 start()
             }
         }, 100)
-
         handler.postDelayed({ slideUp(tagline, 600) }, 650)
         handler.postDelayed({ slideUp(btnLogin, 650) }, 950)
         handler.postDelayed({ slideUp(btnRegister, 650) }, 1120)

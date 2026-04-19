@@ -15,6 +15,7 @@
         android:maxSdkVersion="28"/>
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:extractNativeLibs="false"
         android:allowBackup="true"
@@ -78,6 +79,12 @@
             android:name=".OfflineMapActivity"
             android:exported="false"
             android:theme="@style/Theme.OwnMyWay.NoActionBar"/>
+
+        <activity
+            android:name=".FriendRequestActivity"
+            android:exported="false"
+            android:label="Pedido de Amizade"
+            android:theme="@style/Theme.AppCompat.Light.Dialog" />
     </application>
 
 </manifest>

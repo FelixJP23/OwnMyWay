@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# Regras Universais para Supabase v3
+-keepattributes Signature, InnerClasses, EnclosingMethod, *Annotation*
+-keep class io.github.jan.supabase.** { *; }
+-dontwarn io.github.jan.supabase.**
+-keep class kotlinx.serialization.json.** { *; }
