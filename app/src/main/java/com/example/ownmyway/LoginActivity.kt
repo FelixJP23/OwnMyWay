@@ -110,11 +110,22 @@ class LoginActivity : AppCompatActivity() {
                     email = emailText
                     password = passwordText
                 }
+
                 Toast.makeText(this@LoginActivity, "Bem-vindo!", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+
+                val intent = Intent(this@LoginActivity, SplashActivity::class.java).apply {
+                    putExtra("FORCE_GO_MAIN", true)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+
+                startActivity(intent)
                 finish()
             } catch (e: Exception) {
-                Toast.makeText(this@LoginActivity, "E-mail ou senha inválidos", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this@LoginActivity,
+                    "E-mail ou senha inválidos",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
