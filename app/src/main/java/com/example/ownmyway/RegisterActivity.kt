@@ -3,7 +3,6 @@ package com.example.ownmyway
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
@@ -47,6 +46,16 @@ private enum class PasswordStrength {
 
 class RegisterActivity : AppCompatActivity() {
 
+    companion object {
+        private const val PREFS_REGISTER = "register_prefs"
+        private const val KEY_PENDING_NAME = "pending_name"
+        private const val KEY_PENDING_EMAIL = "pending_email"
+        private const val KEY_PENDING_PASSWORD = "pending_password"
+
+        private const val REGISTER_CALLBACK_SCHEME = "ownmyway"
+        private const val REGISTER_CALLBACK_HOST = "register-callback"
+    }
+
     private lateinit var registerFlipper: ViewFlipper
     private lateinit var progressRegister: ProgressBar
     private lateinit var tvProgressCount: TextView
@@ -71,7 +80,6 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var fields: List<EditText>
 
     private val verificationStepIndex = 4
-    private val registerRedirectUri = "ownmyway://register-callback"
 
     private var currentStep = 0
     private var emailAvailabilityState = EmailAvailabilityState.IDLE
@@ -100,6 +108,7 @@ class RegisterActivity : AppCompatActivity() {
         setContentView(R.layout.activity_register)
 
         bindViews()
+        restorePendingRegistration()
         setupListeners()
         updateStepUi()
         updatePasswordStrengthUi()
@@ -216,6 +225,31 @@ class RegisterActivity : AppCompatActivity() {
         )
     }
 
+    private fun savePendingRegistration(name: String, email: String, password: String) {
+        getSharedPreferences(PREFS_REGISTER, MODE_PRIVATE)
+            .edit()
+            .putString(KEY_PENDING_NAME, name)
+            .putString(KEY_PENDING_EMAIL, email)
+            .putString(KEY_PENDING_PASSWORD, password)
+            .apply()
+    }
+
+    private fun restorePendingRegistration() {
+        val prefs = getSharedPreferences(PREFS_REGISTER, MODE_PRIVATE)
+
+        etName.setText(prefs.getString(KEY_PENDING_NAME, etName.text.toString()))
+        etEmail.setText(prefs.getString(KEY_PENDING_EMAIL, etEmail.text.toString()))
+        etPassword.setText(prefs.getString(KEY_PENDING_PASSWORD, etPassword.text.toString()))
+        etConfirmPassword.setText(prefs.getString(KEY_PENDING_PASSWORD, etConfirmPassword.text.toString()))
+    }
+
+    private fun clearPendingRegistration() {
+        getSharedPreferences(PREFS_REGISTER, MODE_PRIVATE)
+            .edit()
+            .clear()
+            .apply()
+    }
+
     private fun advanceToNextStep() {
         if (!validateCurrentStep(showError = true)) return
         showStep(currentStep + 1)
@@ -279,7 +313,8 @@ class RegisterActivity : AppCompatActivity() {
                 } else {
                     tvStepTitle.text = "Estamos quase finalizando!"
                     tvStepHint.visibility = View.VISIBLE
-                    tvStepHint.text = "Te mandamos um email de verificação, cheque seu email para finalizar o cadastro"
+                    tvStepHint.text =
+                        "Te mandamos um email de verificação, cheque seu email para finalizar o cadastro"
                     tvVerificationStatus.visibility = View.GONE
                     btnNext.text = "Verificar"
                 }
@@ -357,6 +392,7 @@ class RegisterActivity : AppCompatActivity() {
                 }
                 false
             }
+
             EmailAvailabilityState.IDLE,
             EmailAvailabilityState.ERROR -> {
                 if (showError) {
@@ -532,8 +568,11 @@ class RegisterActivity : AppCompatActivity() {
             return
         }
 
+        val name = etName.text.toString().trim()
         val email = etEmail.text.toString().trim()
         val password = etPassword.text.toString()
+
+        savePendingRegistration(name, email, password)
 
         setLoading(true)
 
@@ -542,13 +581,6 @@ class RegisterActivity : AppCompatActivity() {
                 SupabaseClient.client.auth.signUpWith(Email) {
                     this.email = email
                     this.password = password
-
-                    /*
-                     * Se sua versão do supabase-kt expuser a opção abaixo,
-                     * pode descomentar para forçar o redirect do email:
-                     *
-                     * emailRedirectTo = registerRedirectUri
-                     */
                 }
 
                 verificationReady = false
@@ -591,11 +623,14 @@ class RegisterActivity : AppCompatActivity() {
         val data = intent?.data ?: return
 
         val isRegisterCallback =
-            data.scheme == "ownmyway" && data.host == "register-callback"
+            data.scheme == REGISTER_CALLBACK_SCHEME &&
+                    data.host == REGISTER_CALLBACK_HOST
 
         if (!isRegisterCallback) return
 
         lifecycleScope.launch {
+            restorePendingRegistration()
+
             val email = etEmail.text.toString().trim()
             if (email.isBlank()) return@launch
 
@@ -672,6 +707,7 @@ class RegisterActivity : AppCompatActivity() {
                 }
 
                 ensureUserProfile(user.id, name)
+                clearPendingRegistration()
 
                 setLoading(false)
 
