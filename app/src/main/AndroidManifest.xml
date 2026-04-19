@@ -79,6 +79,12 @@
             android:name=".OfflineMapActivity"
             android:exported="false"
             android:theme="@style/Theme.OwnMyWay.NoActionBar"/>
+
+        <activity
+            android:name=".FriendRequestActivity"
+            android:exported="false"
+            android:label="Pedido de Amizade"
+            android:theme="@style/Theme.AppCompat.Light.Dialog" />
     </application>
 
 </manifest>
