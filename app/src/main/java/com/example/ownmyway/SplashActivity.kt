@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
@@ -16,6 +17,12 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
 
@@ -39,6 +46,7 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     private var introFinished = false
     private var videoPrepared = false
     private var videoRevealed = false
+    private var authResolved = false
 
     companion object {
         private const val VIDEO_PREPARE_TIMEOUT_MS = 3500L
@@ -85,22 +93,57 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         btnRegister = findViewById(R.id.btnRegister)
         btnLogin = findViewById(R.id.btnLogin)
 
-        btnRegister.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
-            finish()
-        }
+        btnLogin.setOnClickListener { goToLogin() }
+        btnRegister.setOnClickListener { goToRegister() }
 
-        btnLogin.setOnClickListener {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-        }
+        lifecycleScope.launch {
+            try {
+                val finalStatus = SupabaseClient.client.auth.sessionStatus
+                    .filter { it !is SessionStatus.Initializing }
+                    .first()
 
+                if (isDestroyed || isFinishing) return@launch
+
+                authResolved = true
+
+                if (finalStatus is SessionStatus.Authenticated) {
+                    Log.d("SplashActivity", "Sessão recuperada com sucesso.")
+                    goToMain()
+                } else {
+                    Log.d("SplashActivity", "Nenhuma sessão válida. Seguindo fluxo normal.")
+                    handleNavigationFlow()
+                }
+            } catch (e: Exception) {
+                Log.e("SplashActivity", "Erro ao verificar sessão: ${e.message}", e)
+                authResolved = true
+                handleNavigationFlow()
+            }
+        }
+    }
+
+    private fun handleNavigationFlow() {
         val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
         if (skipAnim) {
             showMainPhaseImmediately()
         } else {
             startIntroSequence()
         }
+    }
+
+    private fun goToMain() {
+        releasePlayer()
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+    }
+
+    private fun goToLogin() {
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+    }
+
+    private fun goToRegister() {
+        startActivity(Intent(this, RegisterActivity::class.java))
+        finish()
     }
 
     private fun startIntroSequence() {
@@ -332,6 +375,7 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+        if (!authResolved || isFinishing || isDestroyed) return
         startVideo(surface)
     }
 
