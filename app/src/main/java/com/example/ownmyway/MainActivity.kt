@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -45,6 +46,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     val okHttpClient = OkHttpClient()
     val gson         = Gson()
+
+    // ── Clima ─────────────────────────────────────────────────────────────
+    private lateinit var tvTemperature: TextView
+    private lateinit var ivWeatherIcon: android.widget.ImageView
 
     // ── Last built route (for offline download) ───────────────────────────
     private var lastRouteStops: List<NearbyPlace> = emptyList()
@@ -168,10 +173,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    // ── onCreate ──────────────────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        tvTemperature = findViewById(R.id.tvTemperature)
+        ivWeatherIcon = findViewById(R.id.ivWeatherIcon)
+
+        setupBottomNavigation()
+
+        findViewById<android.view.View>(R.id.btnLogout).setOnClickListener { performLogout() }
 
         MealNotificationReceiver.createChannel(this)
 
@@ -223,13 +234,43 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         }
 
-        // Handle meal notification tap → find nearest restaurant
         intent?.getStringExtra("meal_suggestion")?.let {
             searchNearby(listOf(PlaceCategory.RESTAURANTS))
         }
     }
 
-    // ── Map ready ─────────────────────────────────────────────────────────
+    private fun setupBottomNavigation() {
+        val bottomNav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_navigation)
+        bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    currentLatLng?.let { latLng ->
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                    } ?: run {
+                        Toast.makeText(this, "Localização ainda não disponível", Toast.LENGTH_SHORT).show()
+                    }
+                    true
+                }
+                R.id.nav_friends -> {
+                    startActivity(Intent(this, SocialFeedActivity::class.java))
+                    true
+                }
+                R.id.nav_budget -> {
+                    startActivity(Intent(this, BudgetActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun performLogout() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         try {
@@ -257,7 +298,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         requestLocationPermission()
     }
 
-    // ── Location ──────────────────────────────────────────────────────────
     private fun requestLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) startLocationUpdates()
@@ -278,13 +318,24 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 if (!locationInitialized) {
                     map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng!!, 15f))
                     locationInitialized = true
+                    fetchWeather(currentLatLng!!)
                 }
             }
         }
         fusedLocationClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
     }
 
-    // ── Autocomplete ──────────────────────────────────────────────────────
+    private fun fetchWeather(latLng: LatLng) {
+        val mockTemp = (20..32).random()
+        tvTemperature.text = "${mockTemp}°C"
+        
+        if (mockTemp > 25) {
+            ivWeatherIcon.setImageResource(android.R.drawable.ic_menu_day)
+        } else {
+            ivWeatherIcon.setImageResource(android.R.drawable.ic_menu_gallery)
+        }
+    }
+
     private fun openAutocomplete() {
         val fields = listOf(
             Place.Field.ID, Place.Field.NAME,
@@ -295,7 +346,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         )
     }
 
-    // ── Nearby search (filter) ────────────────────────────────────────────
     fun searchNearby(categories: List<PlaceCategory>) {
         val center = currentLatLng ?: map.cameraPosition.target
         placeMarkers.forEach { it.remove() }
@@ -346,7 +396,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-    // ── Place detail (from autocomplete) ──────────────────────────────────
     private fun fetchAndShowPlaceDetail(placeId: String, name: String, latLng: LatLng) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -378,7 +427,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    // ── Draw single route (from place detail "Take me to it") ─────────────
     fun drawRoute(destination: LatLng, placeName: String) {
         val origin = currentLatLng ?: run {
             Toast.makeText(this, "Could not get your location", Toast.LENGTH_SHORT).show()
@@ -421,7 +469,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
     private fun getPhotoUrl(ref: String) =
         "https://maps.googleapis.com/maps/api/place/photo" +
             "?photo_reference=$ref&maxwidth=800&key=$mapsApiKey"

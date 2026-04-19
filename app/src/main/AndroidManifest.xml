@@ -70,7 +70,17 @@
             android:exported="false"
             android:label="Cadastro" />
 
-        <activity android:name=".CameraActivity"/>
+        <activity
+            android:name=".BudgetActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay" />
+        <activity
+            android:name=".SocialFeedActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay" />
+        <activity
+            android:name=".CameraActivity"
+/>
         <receiver
             android:name=".MealNotificationReceiver"
             android:exported="false"/>
