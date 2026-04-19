@@ -1,208 +1,354 @@
 package com.example.ownmyway
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.SurfaceTexture
+import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.Surface
+import android.view.TextureView
 import android.view.View
 import android.view.animation.DecelerateInterpolator
-import android.view.animation.OvershootInterpolator
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.animation.doOnEnd
-import android.util.Log
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 
-class SplashActivity : AppCompatActivity() {
+class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
 
     private lateinit var rootLayout: FrameLayout
-    private lateinit var welcomePhase: LinearLayout
+
+    private lateinit var introPhase: LinearLayout
+    private lateinit var videoTexture: TextureView
+    private lateinit var videoCover: View
+
     private lateinit var mainPhase: LinearLayout
-    private lateinit var welcomeText: TextView
-    private lateinit var welcomeUnderline: View
+    private lateinit var topBannerImage: ImageView
     private lateinit var logoImage: ImageView
-    private lateinit var tagline: TextView
-    private lateinit var btnLogin: Button
-    private lateinit var btnRegister: Button
+    private lateinit var btnRegister: View
+    private lateinit var btnLogin: View
 
     private val handler = Handler(Looper.getMainLooper())
+
+    private var mediaPlayer: MediaPlayer? = null
+    private var videoSurface: Surface? = null
+
+    private var introFinished = false
+    private var videoPrepared = false
+    private var videoRevealed = false
+
+    companion object {
+        private const val VIDEO_PREPARE_TIMEOUT_MS = 3500L
+        private const val VIDEO_REVEAL_DELAY_MS = 120L
+        private const val VIDEO_FINISH_FALLBACK_MS = 9000L
+        private const val INTRO_FADE_OUT_MS = 420L
+    }
+
+    private val prepareTimeoutRunnable = Runnable {
+        if (!introFinished && !videoPrepared) {
+            showMainPhase()
+        }
+    }
+
+    private val revealRunnable = Runnable {
+        if (!introFinished && !videoRevealed) {
+            revealVideo()
+        }
+    }
+
+    private val finishFallbackRunnable = Runnable {
+        if (!introFinished) {
+            fadeOutIntroAndShowMain()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
-        window.decorView.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                )
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         window.statusBarColor = Color.TRANSPARENT
 
         rootLayout = findViewById(R.id.rootLayout)
-        welcomePhase = findViewById(R.id.welcomePhase)
+
+        introPhase = findViewById(R.id.introPhase)
+        videoTexture = findViewById(R.id.videoTexture)
+        videoCover = findViewById(R.id.videoCover)
+
         mainPhase = findViewById(R.id.mainPhase)
-        welcomeText = findViewById(R.id.welcomeText)
-        welcomeUnderline = findViewById(R.id.welcomeUnderline)
+        topBannerImage = findViewById(R.id.topBannerImage)
         logoImage = findViewById(R.id.logoImage)
-        tagline = findViewById(R.id.tagline)
-        btnLogin = findViewById(R.id.btnLogin)
         btnRegister = findViewById(R.id.btnRegister)
+        btnLogin = findViewById(R.id.btnLogin)
+
+        btnRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+            finish()
+        }
+
+        btnLogin.setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        }
 
         val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
-
         if (skipAnim) {
-            welcomePhase.visibility = View.GONE
-            mainPhase.visibility = View.VISIBLE
-            rootLayout.setBackgroundResource(R.drawable.bg_purple_gradient)
+            showMainPhaseImmediately()
         } else {
-            startAnimationSequence()
+            startIntroSequence()
         }
-
-        btnLogin.setOnClickListener { goToLogin() }
-        btnRegister.setOnClickListener { goToRegister() }
-
-        testSupabaseConnection()
     }
 
-    private fun testSupabaseConnection() {
-        lifecycleScope.launch {
-            try {
-                val client = SupabaseClient.client
-                Log.d("SupabaseTest", "Client initialized: $client")
-            } catch (e: Exception) {
-                Log.e("SupabaseTest", "Connection error: ${e.message}")
+    private fun startIntroSequence() {
+        introFinished = false
+        videoPrepared = false
+        videoRevealed = false
+
+        rootLayout.setBackgroundColor(Color.WHITE)
+
+        introPhase.visibility = View.VISIBLE
+        introPhase.alpha = 1f
+
+        mainPhase.visibility = View.GONE
+
+        videoCover.visibility = View.VISIBLE
+        videoCover.alpha = 1f
+
+        videoTexture.alpha = 1f
+        videoTexture.surfaceTextureListener = this
+
+        handler.postDelayed(prepareTimeoutRunnable, VIDEO_PREPARE_TIMEOUT_MS)
+    }
+
+    private fun startVideo(surfaceTexture: SurfaceTexture) {
+        val videoResId = resources.getIdentifier("own_my_way_intro", "raw", packageName)
+        if (videoResId == 0) {
+            showMainPhase()
+            return
+        }
+
+        releasePlayer()
+
+        videoSurface = Surface(surfaceTexture)
+
+        val uri = Uri.parse("android.resource://$packageName/$videoResId")
+
+        mediaPlayer = MediaPlayer().apply {
+            setDataSource(this@SplashActivity, uri)
+            setSurface(videoSurface)
+            isLooping = false
+            setVolume(0f, 0f)
+
+            setOnPreparedListener {
+                videoPrepared = true
+                handler.removeCallbacks(prepareTimeoutRunnable)
+
+                start()
+
+                handler.postDelayed(revealRunnable, VIDEO_REVEAL_DELAY_MS)
+                handler.postDelayed(finishFallbackRunnable, VIDEO_FINISH_FALLBACK_MS)
             }
-        }
-    }
 
-    private fun goToLogin() {
-        val intent = Intent(this, LoginActivity::class.java)
-        startActivity(intent)
-        finish()
-    }
-
-    private fun goToRegister() {
-        val intent = Intent(this, RegisterActivity::class.java)
-        startActivity(intent)
-        finish()
-    }
-
-    private fun startAnimationSequence() {
-        welcomeText.alpha = 0f
-        ObjectAnimator.ofFloat(welcomeText, "alpha", 0f, 1f).apply {
-            duration = 900
-            interpolator = DecelerateInterpolator()
-            start()
-        }
-
-        handler.postDelayed({
-            welcomeUnderline.visibility = View.VISIBLE
-            val params = welcomeUnderline.layoutParams
-            val targetWidth = welcomeText.width
-            ValueAnimator.ofInt(0, targetWidth).apply {
-                duration = 600
-                interpolator = DecelerateInterpolator()
-                addUpdateListener {
-                    params.width = it.animatedValue as Int
-                    welcomeUnderline.layoutParams = params
+            setOnInfoListener { _, what, _ ->
+                if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
+                    revealVideo()
                 }
-                start()
+                false
             }
-            ObjectAnimator.ofFloat(welcomeUnderline, "alpha", 0f, 1f).apply {
-                duration = 400
-                start()
-            }
-        }, 1000)
 
-        handler.postDelayed({
-            AnimatorSet().apply {
-                playTogether(
-                    ObjectAnimator.ofFloat(welcomeText, "scaleX", 1f, 1.06f, 1f),
-                    ObjectAnimator.ofFloat(welcomeText, "scaleY", 1f, 1.06f, 1f)
-                )
-                duration = 900
-                start()
+            setOnCompletionListener {
+                fadeOutIntroAndShowMain()
             }
-        }, 1900)
 
-        handler.postDelayed({ fadeOutWelcome() }, 2800)
-    }
-
-    private fun fadeOutWelcome() {
-        AnimatorSet().apply {
-            playTogether(
-                ObjectAnimator.ofFloat(welcomeText, "alpha", 1f, 0f),
-                ObjectAnimator.ofFloat(welcomeUnderline, "alpha", 1f, 0f)
-            )
-            duration = 600
-            doOnEnd {
-                welcomePhase.visibility = View.GONE
-                animateBackgroundToPurple()
+            setOnErrorListener { _, _, _ ->
+                showMainPhase()
+                true
             }
-            start()
+
+            prepareAsync()
         }
     }
 
-    private fun animateBackgroundToPurple() {
-        ValueAnimator.ofArgb(
-            Color.parseColor("#FFFFFF"),
-            Color.parseColor("#2D1060")
-        ).apply {
-            duration = 850
-            interpolator = DecelerateInterpolator()
-            addUpdateListener { rootLayout.setBackgroundColor(it.animatedValue as Int) }
-            doOnEnd {
-                rootLayout.setBackgroundResource(R.drawable.bg_purple_gradient)
+    private fun revealVideo() {
+        if (videoRevealed || introFinished) return
+        videoRevealed = true
+
+        videoCover.animate()
+            .alpha(0f)
+            .setDuration(220L)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                videoCover.visibility = View.GONE
+            }
+            .start()
+    }
+
+    private fun fadeOutIntroAndShowMain() {
+        if (introFinished) return
+        introFinished = true
+
+        handler.removeCallbacks(prepareTimeoutRunnable)
+        handler.removeCallbacks(revealRunnable)
+        handler.removeCallbacks(finishFallbackRunnable)
+
+        introPhase.animate()
+            .alpha(0f)
+            .setDuration(INTRO_FADE_OUT_MS)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                releasePlayer()
+                introPhase.visibility = View.GONE
                 showMainPhase()
             }
-            start()
-        }
+            .start()
+    }
+
+    private fun showMainPhaseImmediately() {
+        releasePlayer()
+
+        rootLayout.setBackgroundColor(Color.WHITE)
+        introPhase.visibility = View.GONE
+        mainPhase.visibility = View.VISIBLE
+
+        topBannerImage.alpha = 1f
+        topBannerImage.translationY = 0f
+        topBannerImage.scaleX = 1f
+        topBannerImage.scaleY = 1f
+
+        logoImage.alpha = 1f
+        logoImage.translationY = 0f
+        logoImage.scaleX = 1f
+        logoImage.scaleY = 1f
+
+        btnRegister.alpha = 1f
+        btnRegister.translationY = 0f
+
+        btnLogin.alpha = 1f
+        btnLogin.translationY = 0f
     }
 
     private fun showMainPhase() {
+        if (mainPhase.visibility == View.VISIBLE) return
+
+        releasePlayer()
+        handler.removeCallbacks(prepareTimeoutRunnable)
+        handler.removeCallbacks(revealRunnable)
+        handler.removeCallbacks(finishFallbackRunnable)
+
+        rootLayout.setBackgroundColor(Color.WHITE)
+
+        prepareMainViews()
+
         mainPhase.visibility = View.VISIBLE
+        mainPhase.alpha = 1f
 
-        handler.postDelayed({
-            AnimatorSet().apply {
-                playTogether(
-                    ObjectAnimator.ofFloat(logoImage, "scaleX", 0.3f, 1f),
-                    ObjectAnimator.ofFloat(logoImage, "scaleY", 0.3f, 1f),
-                    ObjectAnimator.ofFloat(logoImage, "alpha", 0f, 1f)
-                )
-                duration = 800
-                interpolator = OvershootInterpolator(1.3f)
-                start()
-            }
-        }, 100)
-
-        handler.postDelayed({ slideUp(tagline, 600) }, 650)
-        handler.postDelayed({ slideUp(btnLogin, 650) }, 950)
-        handler.postDelayed({ slideUp(btnRegister, 650) }, 1120)
+        animateMainViews()
     }
 
-    private fun slideUp(view: View, duration: Long) {
-        view.translationY = 80f
-        AnimatorSet().apply {
-            playTogether(
-                ObjectAnimator.ofFloat(view, "translationY", 80f, 0f),
-                ObjectAnimator.ofFloat(view, "alpha", 0f, 1f)
-            )
-            this.duration = duration
-            interpolator = DecelerateInterpolator(1.8f)
-            start()
+    private fun prepareMainViews() {
+        topBannerImage.alpha = 0f
+        topBannerImage.translationY = 64f
+        topBannerImage.scaleX = 0.985f
+        topBannerImage.scaleY = 0.985f
+
+        logoImage.alpha = 0f
+        logoImage.translationY = 42f
+        logoImage.scaleX = 0.94f
+        logoImage.scaleY = 0.94f
+
+        btnRegister.alpha = 0f
+        btnRegister.translationY = 38f
+
+        btnLogin.alpha = 0f
+        btnLogin.translationY = 26f
+    }
+
+    private fun animateMainViews() {
+        topBannerImage.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setStartDelay(140L)
+            .setDuration(1050L)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
+
+        logoImage.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setStartDelay(340L)
+            .setDuration(900L)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
+
+        btnRegister.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setStartDelay(620L)
+            .setDuration(820L)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
+
+        btnLogin.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setStartDelay(800L)
+            .setDuration(760L)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
+    }
+
+    private fun releasePlayer() {
+        try {
+            mediaPlayer?.stop()
+        } catch (_: Exception) {
         }
+
+        try {
+            mediaPlayer?.reset()
+        } catch (_: Exception) {
+        }
+
+        try {
+            mediaPlayer?.release()
+        } catch (_: Exception) {
+        }
+
+        mediaPlayer = null
+
+        try {
+            videoSurface?.release()
+        } catch (_: Exception) {
+        }
+
+        videoSurface = null
+    }
+
+    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+        startVideo(surface)
+    }
+
+    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+    }
+
+    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+        releasePlayer()
+        return true
+    }
+
+    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         handler.removeCallbacksAndMessages(null)
+        releasePlayer()
+        super.onDestroy()
     }
 }
