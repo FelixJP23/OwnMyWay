@@ -20,8 +20,8 @@
             android:layout_gravity="start"
             android:layout_marginTop="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Voltar para a tela inicial"
             android:src="@android:drawable/ic_menu_revert"
+            android:contentDescription="Voltar para a tela inicial"
             app:tint="#000000" />
 
         <androidx.cardview.widget.CardView
@@ -33,14 +33,14 @@
             app:cardElevation="0dp">
 
             <ImageView
-                android:id="@+id/logoImage"
-                android:layout_width="288dp"
-                android:layout_height="254dp"
+                android:id="@+id/imgLogo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:contentDescription="Logo do Own My Way"
                 android:padding="24dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/own_my_way_logo2" />
+                android:src="@drawable/own_my_way_logo" />
         </androidx.cardview.widget.CardView>
 
         <TextView
@@ -104,18 +104,6 @@
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             app:cornerRadius="12dp" />
-
-        <TextView
-            android:id="@+id/txtRegisterLink"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="24dp"
-            android:text="Não tem uma conta? Cadastre-se"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold" />
 
     </LinearLayout>
 </ScrollView>

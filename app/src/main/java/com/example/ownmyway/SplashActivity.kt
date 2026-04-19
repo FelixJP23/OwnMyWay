@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
@@ -17,12 +16,6 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.status.SessionStatus
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
 
@@ -46,14 +39,6 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     private var introFinished = false
     private var videoPrepared = false
     private var videoRevealed = false
-    private var introStarted = false
-
-    private var authResolved = false
-    private var shouldGoToMainAfterIntro = false
-    private var pendingPostIntroNavigation = false
-
-    private var skipAnimation = false
-    private var forceGoMainAfterIntro = false
 
     companion object {
         private const val VIDEO_PREPARE_TIMEOUT_MS = 3500L
@@ -64,7 +49,7 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
 
     private val prepareTimeoutRunnable = Runnable {
         if (!introFinished && !videoPrepared) {
-            fallbackFromIntro()
+            showMainPhase()
         }
     }
 
@@ -76,7 +61,7 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
 
     private val finishFallbackRunnable = Runnable {
         if (!introFinished) {
-            fadeOutIntroAndContinue()
+            fadeOutIntroAndShowMain()
         }
     }
 
@@ -100,61 +85,25 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         btnRegister = findViewById(R.id.btnRegister)
         btnLogin = findViewById(R.id.btnLogin)
 
-        btnLogin.setOnClickListener { goToLogin() }
-        btnRegister.setOnClickListener { goToRegister() }
+        btnRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+            finish()
+        }
 
-        skipAnimation = intent.getBooleanExtra("SKIP_ANIMATION", false)
-        forceGoMainAfterIntro = intent.getBooleanExtra("FORCE_GO_MAIN", false)
-        shouldGoToMainAfterIntro = forceGoMainAfterIntro
+        btnLogin.setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        }
 
-        observeSessionState()
-
-        if (!skipAnimation) {
+        val skipAnim = intent.getBooleanExtra("SKIP_ANIMATION", false)
+        if (skipAnim) {
+            showMainPhaseImmediately()
+        } else {
             startIntroSequence()
         }
     }
 
-    private fun observeSessionState() {
-        lifecycleScope.launch {
-            try {
-                val finalStatus = SupabaseClient.client.auth.sessionStatus
-                    .filter { it !is SessionStatus.Initializing }
-                    .first()
-
-                if (isDestroyed || isFinishing) return@launch
-
-                shouldGoToMainAfterIntro =
-                    shouldGoToMainAfterIntro || (finalStatus is SessionStatus.Authenticated)
-
-                Log.d(
-                    "SplashActivity",
-                    if (finalStatus is SessionStatus.Authenticated)
-                        "Sessão válida encontrada."
-                    else
-                        "Nenhuma sessão válida encontrada."
-                )
-            } catch (e: Exception) {
-                Log.e("SplashActivity", "Erro ao verificar sessão: ${e.message}", e)
-            } finally {
-                authResolved = true
-
-                if (skipAnimation) {
-                    if (shouldGoToMainAfterIntro) {
-                        goToMain()
-                    } else {
-                        showMainPhaseImmediately()
-                    }
-                } else if (pendingPostIntroNavigation) {
-                    continueAfterIntro()
-                }
-            }
-        }
-    }
-
     private fun startIntroSequence() {
-        if (introStarted) return
-        introStarted = true
-
         introFinished = false
         videoPrepared = false
         videoRevealed = false
@@ -178,7 +127,7 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     private fun startVideo(surfaceTexture: SurfaceTexture) {
         val videoResId = resources.getIdentifier("own_my_way_intro", "raw", packageName)
         if (videoResId == 0) {
-            fallbackFromIntro()
+            showMainPhase()
             return
         }
 
@@ -212,11 +161,11 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
             }
 
             setOnCompletionListener {
-                fadeOutIntroAndContinue()
+                fadeOutIntroAndShowMain()
             }
 
             setOnErrorListener { _, _, _ ->
-                fallbackFromIntro()
+                showMainPhase()
                 true
             }
 
@@ -238,7 +187,7 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
             .start()
     }
 
-    private fun fadeOutIntroAndContinue() {
+    private fun fadeOutIntroAndShowMain() {
         if (introFinished) return
         introFinished = true
 
@@ -253,59 +202,9 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
             .withEndAction {
                 releasePlayer()
                 introPhase.visibility = View.GONE
-
-                if (authResolved) {
-                    continueAfterIntro()
-                } else {
-                    pendingPostIntroNavigation = true
-                }
+                showMainPhase()
             }
             .start()
-    }
-
-    private fun fallbackFromIntro() {
-        if (introFinished) return
-        introFinished = true
-
-        handler.removeCallbacks(prepareTimeoutRunnable)
-        handler.removeCallbacks(revealRunnable)
-        handler.removeCallbacks(finishFallbackRunnable)
-
-        releasePlayer()
-        introPhase.visibility = View.GONE
-        rootLayout.setBackgroundColor(Color.WHITE)
-
-        if (authResolved) {
-            continueAfterIntro()
-        } else {
-            pendingPostIntroNavigation = true
-        }
-    }
-
-    private fun continueAfterIntro() {
-        pendingPostIntroNavigation = false
-
-        if (shouldGoToMainAfterIntro) {
-            goToMain()
-        } else {
-            showMainPhase()
-        }
-    }
-
-    private fun goToMain() {
-        releasePlayer()
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
-    }
-
-    private fun goToLogin() {
-        startActivity(Intent(this, LoginActivity::class.java))
-        finish()
-    }
-
-    private fun goToRegister() {
-        startActivity(Intent(this, RegisterActivity::class.java))
-        finish()
     }
 
     private fun showMainPhaseImmediately() {
