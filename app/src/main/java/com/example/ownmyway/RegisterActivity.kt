@@ -3,6 +3,7 @@ package com.example.ownmyway
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
@@ -56,6 +57,8 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var tvEmailAvailability: TextView
     private lateinit var tvPasswordStrength: TextView
     private lateinit var progressPasswordStrength: ProgressBar
+    private lateinit var tvVerificationEmail: TextView
+    private lateinit var tvVerificationStatus: TextView
 
     private lateinit var btnBack: Button
     private lateinit var btnNext: Button
@@ -67,26 +70,29 @@ class RegisterActivity : AppCompatActivity() {
 
     private lateinit var fields: List<EditText>
 
+    private val verificationStepIndex = 4
+    private val registerRedirectUri = "ownmyway://register-callback"
+
+    private var currentStep = 0
+    private var emailAvailabilityState = EmailAvailabilityState.IDLE
+    private var emailCheckJob: Job? = null
+    private var verificationReady = false
+
     private val stepTitles = listOf(
         "Qual é o seu nome?",
         "Agora digite seu e-mail",
         "Crie sua senha",
-        "Confirme sua senha"
+        "Confirme sua senha",
+        "Estamos quase finalizando!"
     )
 
     private val stepHints = listOf(
         "",
         "Esse e-mail será usado para entrar no aplicativo.",
         "Use pelo menos 6 caracteres. Senhas com caracteres especiais ficam mais fortes.",
-        "Digite novamente a senha criada."
+        "Digite novamente a senha criada.",
+        "Te mandamos um email de verificação, cheque seu email para finalizar o cadastro"
     )
-
-    private val lastStepIndex: Int
-        get() = stepTitles.lastIndex
-
-    private var currentStep = 0
-    private var emailAvailabilityState = EmailAvailabilityState.IDLE
-    private var emailCheckJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,6 +103,13 @@ class RegisterActivity : AppCompatActivity() {
         setupListeners()
         updateStepUi()
         updatePasswordStrengthUi()
+        handleAuthCallback(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleAuthCallback(intent)
     }
 
     override fun onDestroy() {
@@ -115,6 +128,8 @@ class RegisterActivity : AppCompatActivity() {
         tvEmailAvailability = findViewById(R.id.tvEmailAvailability)
         tvPasswordStrength = findViewById(R.id.tvPasswordStrength)
         progressPasswordStrength = findViewById(R.id.progressPasswordStrength)
+        tvVerificationEmail = findViewById(R.id.tvVerificationEmail)
+        tvVerificationStatus = findViewById(R.id.tvVerificationStatus)
 
         btnBack = findViewById(R.id.btnBack)
         btnNext = findViewById(R.id.btnNext)
@@ -129,11 +144,23 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnBack.setOnClickListener {
-            if (currentStep > 0) showStep(currentStep - 1)
+            when (currentStep) {
+                1, 2, 3, verificationStepIndex -> showStep(currentStep - 1)
+            }
         }
 
         btnNext.setOnClickListener {
-            advanceOrSubmit()
+            when (currentStep) {
+                0, 1, 2 -> advanceToNextStep()
+                3 -> signUpPendingUser()
+                verificationStepIndex -> {
+                    if (verificationReady) {
+                        continueAfterVerification()
+                    } else {
+                        checkIfEmailWasConfirmed()
+                    }
+                }
+            }
         }
 
         tvLogin.setOnClickListener {
@@ -164,7 +191,10 @@ class RegisterActivity : AppCompatActivity() {
             editText.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_NEXT || actionId == EditorInfo.IME_ACTION_DONE) {
                     if (index == currentStep) {
-                        advanceOrSubmit()
+                        when (currentStep) {
+                            0, 1, 2 -> advanceToNextStep()
+                            3 -> signUpPendingUser()
+                        }
                     }
                     true
                 } else {
@@ -177,24 +207,18 @@ class RegisterActivity : AppCompatActivity() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (currentStep == 0) {
-                        finish()
-                    } else {
-                        showStep(currentStep - 1)
+                    when (currentStep) {
+                        0 -> finish()
+                        1, 2, 3, verificationStepIndex -> showStep(currentStep - 1)
                     }
                 }
             }
         )
     }
 
-    private fun advanceOrSubmit() {
+    private fun advanceToNextStep() {
         if (!validateCurrentStep(showError = true)) return
-
-        if (currentStep == lastStepIndex) {
-            registerUser()
-        } else {
-            showStep(currentStep + 1)
-        }
+        showStep(currentStep + 1)
     }
 
     private fun showStep(step: Int) {
@@ -213,20 +237,62 @@ class RegisterActivity : AppCompatActivity() {
     private fun updateStepUi() {
         registerFlipper.displayedChild = currentStep
 
-        tvProgressCount.text = "${currentStep + 1} de ${stepTitles.size}"
-        progressRegister.max = stepTitles.size
+        tvProgressCount.text = "${currentStep + 1} de 5"
+        progressRegister.max = 5
         progressRegister.progress = currentStep + 1
 
         tvIntro.visibility = if (currentStep == 0) View.VISIBLE else View.GONE
-        tvStepTitle.text = stepTitles[currentStep]
 
-        val hint = stepHints[currentStep]
-        tvStepHint.text = hint
-        tvStepHint.visibility = if (hint.isBlank()) View.GONE else View.VISIBLE
+        when (currentStep) {
+            0 -> {
+                tvStepTitle.text = "Qual é o seu nome?"
+                tvStepHint.visibility = View.GONE
+            }
 
-        btnBack.visibility = if (currentStep == 0) View.INVISIBLE else View.VISIBLE
-        btnBack.isEnabled = currentStep != 0
-        btnNext.text = if (currentStep == lastStepIndex) "Concluir" else "Próximo"
+            1 -> {
+                tvStepTitle.text = "Agora digite seu e-mail"
+                tvStepHint.visibility = View.VISIBLE
+                tvStepHint.text = "Esse e-mail será usado para entrar no aplicativo."
+            }
+
+            2 -> {
+                tvStepTitle.text = "Crie sua senha"
+                tvStepHint.visibility = View.VISIBLE
+                tvStepHint.text = "Use pelo menos 6 caracteres. Senhas com caracteres especiais ficam mais fortes."
+            }
+
+            3 -> {
+                tvStepTitle.text = "Confirme sua senha"
+                tvStepHint.visibility = View.VISIBLE
+                tvStepHint.text = "Digite novamente a senha criada."
+            }
+
+            verificationStepIndex -> {
+                tvVerificationEmail.text = etEmail.text.toString().trim()
+
+                if (verificationReady) {
+                    tvStepTitle.text = "Email confirmado, pronto para começar?"
+                    tvStepHint.visibility = View.GONE
+                    tvVerificationStatus.visibility = View.VISIBLE
+                    tvVerificationStatus.text = "Sua conta foi confirmada com sucesso."
+                    btnNext.text = "Vamos lá"
+                } else {
+                    tvStepTitle.text = "Estamos quase finalizando!"
+                    tvStepHint.visibility = View.VISIBLE
+                    tvStepHint.text = "Te mandamos um email de verificação, cheque seu email para finalizar o cadastro"
+                    tvVerificationStatus.visibility = View.GONE
+                    btnNext.text = "Verificar"
+                }
+            }
+        }
+
+        val showBack = currentStep in 1..verificationStepIndex
+        btnBack.visibility = if (showBack) View.VISIBLE else View.INVISIBLE
+        btnBack.isEnabled = showBack
+
+        if (currentStep != verificationStepIndex) {
+            btnNext.text = if (currentStep == 3) "Concluir" else "Próximo"
+        }
 
         if (currentStep != 1) {
             tvEmailAvailability.visibility = View.GONE
@@ -234,11 +300,18 @@ class RegisterActivity : AppCompatActivity() {
 
         updateButtonsState()
         updatePasswordStrengthUi()
-        fields[currentStep].requestFocus()
+
+        if (currentStep < fields.size) {
+            fields[currentStep].requestFocus()
+        }
     }
 
     private fun updateButtonsState() {
-        btnNext.isEnabled = validateCurrentStep(showError = false)
+        btnNext.isEnabled = when (currentStep) {
+            0, 1, 2, 3 -> validateCurrentStep(showError = false)
+            verificationStepIndex -> true
+            else -> false
+        }
         btnNext.alpha = if (btnNext.isEnabled) 1f else 0.45f
     }
 
@@ -248,7 +321,7 @@ class RegisterActivity : AppCompatActivity() {
             1 -> validateEmail(showError)
             2 -> validatePassword(showError)
             3 -> validateConfirmPassword(showError)
-            else -> false
+            else -> true
         }
     }
 
@@ -277,7 +350,6 @@ class RegisterActivity : AppCompatActivity() {
 
         return when (emailAvailabilityState) {
             EmailAvailabilityState.AVAILABLE -> true
-
             EmailAvailabilityState.TAKEN -> {
                 if (showError) {
                     etEmail.error = "Email já cadastrado"
@@ -285,7 +357,6 @@ class RegisterActivity : AppCompatActivity() {
                 }
                 false
             }
-
             EmailAvailabilityState.IDLE,
             EmailAvailabilityState.ERROR -> {
                 if (showError) {
@@ -342,30 +413,15 @@ class RegisterActivity : AppCompatActivity() {
         emailCheckJob = lifecycleScope.launch {
             delay(450)
 
-            try {
-                val result = SupabaseClient.client.postgrest.rpc(
-                    "is_email_available",
-                    buildJsonObject {
-                        put("p_email", email)
-                    }
-                )
+            val available = callBooleanRpc("is_email_available", email)
 
-                val normalized = result.data.trim()
-                    .removePrefix("\"")
-                    .removeSuffix("\"")
-
-                val isAvailable = normalized.toBooleanStrictOrNull()
-
-                setEmailAvailabilityState(
-                    when (isAvailable) {
-                        true -> EmailAvailabilityState.AVAILABLE
-                        false -> EmailAvailabilityState.TAKEN
-                        null -> EmailAvailabilityState.ERROR
-                    }
-                )
-            } catch (_: Exception) {
-                setEmailAvailabilityState(EmailAvailabilityState.ERROR)
-            }
+            setEmailAvailabilityState(
+                when (available) {
+                    true -> EmailAvailabilityState.AVAILABLE
+                    false -> EmailAvailabilityState.TAKEN
+                    null -> EmailAvailabilityState.ERROR
+                }
+            )
         }
     }
 
@@ -426,11 +482,9 @@ class RegisterActivity : AppCompatActivity() {
             PasswordStrength.VERY_WEAK -> {
                 progressPasswordStrength.visibility = View.VISIBLE
                 tvPasswordStrength.visibility = View.VISIBLE
-
                 progressPasswordStrength.progress = 33
                 progressPasswordStrength.progressTintList =
                     ColorStateList.valueOf(Color.parseColor("#DC2626"))
-
                 tvPasswordStrength.text = "muito fraca"
                 tvPasswordStrength.setTextColor(Color.parseColor("#DC2626"))
             }
@@ -438,11 +492,9 @@ class RegisterActivity : AppCompatActivity() {
             PasswordStrength.WEAK -> {
                 progressPasswordStrength.visibility = View.VISIBLE
                 tvPasswordStrength.visibility = View.VISIBLE
-
                 progressPasswordStrength.progress = 66
                 progressPasswordStrength.progressTintList =
                     ColorStateList.valueOf(Color.parseColor("#EAB308"))
-
                 tvPasswordStrength.text = "fraca"
                 tvPasswordStrength.setTextColor(Color.parseColor("#CA8A04"))
             }
@@ -450,18 +502,16 @@ class RegisterActivity : AppCompatActivity() {
             PasswordStrength.STRONG -> {
                 progressPasswordStrength.visibility = View.VISIBLE
                 tvPasswordStrength.visibility = View.VISIBLE
-
                 progressPasswordStrength.progress = 100
                 progressPasswordStrength.progressTintList =
                     ColorStateList.valueOf(Color.parseColor("#16A34A"))
-
                 tvPasswordStrength.text = "forte"
                 tvPasswordStrength.setTextColor(Color.parseColor("#16A34A"))
             }
         }
     }
 
-    private fun registerUser() {
+    private fun signUpPendingUser() {
         if (!validateName(showError = true)) {
             showStep(0)
             return
@@ -482,7 +532,6 @@ class RegisterActivity : AppCompatActivity() {
             return
         }
 
-        val name = etName.text.toString().trim()
         val email = etEmail.text.toString().trim()
         val password = etPassword.text.toString()
 
@@ -493,59 +542,24 @@ class RegisterActivity : AppCompatActivity() {
                 SupabaseClient.client.auth.signUpWith(Email) {
                     this.email = email
                     this.password = password
+
+                    /*
+                     * Se sua versão do supabase-kt expuser a opção abaixo,
+                     * pode descomentar para forçar o redirect do email:
+                     *
+                     * emailRedirectTo = registerRedirectUri
+                     */
                 }
 
-                SupabaseClient.client.auth.signInWith(Email) {
-                    this.email = email
-                    this.password = password
-                }
-
-                val user = SupabaseClient.client.auth.currentUserOrNull()
-                if (user == null) {
-                    setLoading(false)
-                    Toast.makeText(
-                        this@RegisterActivity,
-                        "Conta criada, mas não foi possível entrar.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    return@launch
-                }
-
-                val existingProfiles = SupabaseClient.client.postgrest["profiles"]
-                    .select {
-                        filter { eq("id", user.id) }
-                    }
-                    .decodeList<UserProfile>()
-
-                if (existingProfiles.isEmpty()) {
-                    SupabaseClient.client.postgrest["profiles"].insert(
-                        UserProfile(
-                            id = user.id,
-                            full_name = name,
-                            onboarding_completed = false
-                        )
-                    )
-                } else {
-                    SupabaseClient.client.postgrest["profiles"].update(
-                        {
-                            set("full_name", name)
-                        }
-                    ) {
-                        filter { eq("id", user.id) }
-                    }
-                }
-
+                verificationReady = false
                 setLoading(false)
+                showStep(verificationStepIndex)
 
                 Toast.makeText(
                     this@RegisterActivity,
-                    "Conta criada com sucesso!",
+                    "Enviamos um email de verificação.",
                     Toast.LENGTH_SHORT
                 ).show()
-
-                startActivity(Intent(this@RegisterActivity, OnboardingActivity::class.java))
-                finish()
-
             } catch (e: Exception) {
                 setLoading(false)
 
@@ -565,7 +579,7 @@ class RegisterActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(
                         this@RegisterActivity,
-                        "Erro ao criar conta: ${e.message}",
+                        "Erro ao enviar email de verificação: ${e.message}",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -573,17 +587,185 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun setLoading(isLoading: Boolean) {
-        btnBack.isEnabled = !isLoading && currentStep != 0
-        btnNext.isEnabled = !isLoading && validateCurrentStep(showError = false)
+    private fun handleAuthCallback(intent: Intent?) {
+        val data = intent?.data ?: return
 
-        btnBack.alpha = if (btnBack.isEnabled || currentStep == 0) 1f else 0.45f
+        val isRegisterCallback =
+            data.scheme == "ownmyway" && data.host == "register-callback"
+
+        if (!isRegisterCallback) return
+
+        lifecycleScope.launch {
+            val email = etEmail.text.toString().trim()
+            if (email.isBlank()) return@launch
+
+            val confirmed = callBooleanRpc(
+                functionName = "is_email_confirmed",
+                email = email
+            ) == true
+
+            if (confirmed) {
+                verificationReady = true
+                showStep(verificationStepIndex)
+                updateStepUi()
+
+                Toast.makeText(
+                    this@RegisterActivity,
+                    "Email confirmado com sucesso!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun checkIfEmailWasConfirmed() {
+        val email = etEmail.text.toString().trim()
+
+        setLoading(true)
+
+        lifecycleScope.launch {
+            val confirmed = callBooleanRpc(
+                functionName = "is_email_confirmed",
+                email = email
+            ) == true
+
+            setLoading(false)
+
+            if (confirmed) {
+                verificationReady = true
+                updateStepUi()
+            } else {
+                Toast.makeText(
+                    this@RegisterActivity,
+                    "Seu email ainda não foi confirmado. Abra o link enviado e tente novamente.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private fun continueAfterVerification() {
+        val name = etName.text.toString().trim()
+        val email = etEmail.text.toString().trim()
+        val password = etPassword.text.toString()
+
+        setLoading(true)
+
+        lifecycleScope.launch {
+            try {
+                if (SupabaseClient.client.auth.currentUserOrNull() == null) {
+                    SupabaseClient.client.auth.signInWith(Email) {
+                        this.email = email
+                        this.password = password
+                    }
+                }
+
+                val user = SupabaseClient.client.auth.currentUserOrNull()
+                if (user == null) {
+                    setLoading(false)
+                    Toast.makeText(
+                        this@RegisterActivity,
+                        "Não foi possível iniciar sua sessão agora.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@launch
+                }
+
+                ensureUserProfile(user.id, name)
+
+                setLoading(false)
+
+                startActivity(Intent(this@RegisterActivity, OnboardingActivity::class.java))
+                finish()
+            } catch (e: Exception) {
+                setLoading(false)
+                Toast.makeText(
+                    this@RegisterActivity,
+                    "Erro ao continuar: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private suspend fun ensureUserProfile(userId: String, name: String) {
+        val existingProfiles = SupabaseClient.client.postgrest["profiles"]
+            .select {
+                filter { eq("id", userId) }
+            }
+            .decodeList<UserProfile>()
+
+        if (existingProfiles.isEmpty()) {
+            SupabaseClient.client.postgrest["profiles"].insert(
+                UserProfile(
+                    id = userId,
+                    full_name = name,
+                    onboarding_completed = false
+                )
+            )
+        } else {
+            SupabaseClient.client.postgrest["profiles"].update(
+                {
+                    set("full_name", name)
+                }
+            ) {
+                filter { eq("id", userId) }
+            }
+        }
+    }
+
+    private suspend fun callBooleanRpc(functionName: String, email: String): Boolean? {
+        return try {
+            val result = SupabaseClient.client.postgrest.rpc(
+                functionName,
+                buildJsonObject {
+                    put("p_email", email)
+                }
+            )
+
+            result.data.trim()
+                .removePrefix("\"")
+                .removeSuffix("\"")
+                .toBooleanStrictOrNull()
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun setLoading(isLoading: Boolean) {
+        val showBack = currentStep in 1..verificationStepIndex
+
+        btnBack.isEnabled = !isLoading && showBack
+        btnBack.alpha = if (btnBack.isEnabled || !showBack) 1f else 0.45f
+
+        btnNext.isEnabled = if (isLoading) {
+            false
+        } else {
+            when (currentStep) {
+                0, 1, 2, 3 -> validateCurrentStep(showError = false)
+                verificationStepIndex -> true
+                else -> false
+            }
+        }
+
         btnNext.alpha = if (btnNext.isEnabled) 1f else 0.45f
 
         btnNext.text = if (isLoading) {
-            "Criando..."
+            when (currentStep) {
+                3 -> "Enviando..."
+                verificationStepIndex -> {
+                    if (verificationReady) "Abrindo..." else "Verificando..."
+                }
+                else -> "Carregando..."
+            }
         } else {
-            if (currentStep == lastStepIndex) "Concluir" else "Próximo"
+            when (currentStep) {
+                3 -> "Concluir"
+                verificationStepIndex -> {
+                    if (verificationReady) "Vamos lá" else "Verificar"
+                }
+                else -> "Próximo"
+            }
         }
     }
 
