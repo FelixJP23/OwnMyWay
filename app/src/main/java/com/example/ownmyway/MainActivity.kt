@@ -33,6 +33,7 @@ import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
+import android.widget.ImageView
 
 // SUPABASE V3
 import io.github.jan.supabase.auth.auth
@@ -105,22 +106,39 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setupUIListeners() {
-        findViewById<TextView>(R.id.tvSearch).setOnClickListener { openAutocomplete() }
+        findViewById<TextView>(R.id.tvSearch).setOnClickListener {
+            openAutocomplete()
+        }
+
         findViewById<ImageButton>(R.id.btnFilter).setOnClickListener {
             FilterBottomSheet().show(supportFragmentManager, "filter")
         }
+
+        findViewById<ImageView>(R.id.imgProfile).setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+        }
+
+        findViewById<FloatingActionButton>(R.id.fabAdd).setOnClickListener {
+            startActivity(Intent(this, CreateRouteActivity::class.java))
+        }
+
         findViewById<FloatingActionButton>(R.id.fabCamera).setOnClickListener {
             startActivity(Intent(this, CameraActivity::class.java))
         }
 
         supportFragmentManager.setFragmentResultListener("filter_result", this) { _, bundle ->
             val names = bundle.getStringArrayList("categories") ?: return@setFragmentResultListener
-            val categories = names.mapNotNull { runCatching { PlaceCategory.valueOf(it) }.getOrNull() }
+            val categories = names.mapNotNull {
+                runCatching { PlaceCategory.valueOf(it) }.getOrNull()
+            }
             searchNearby(categories)
         }
 
         supportFragmentManager.setFragmentResultListener("route_request", this) { _, bundle ->
-            drawRoute(LatLng(bundle.getDouble("lat"), bundle.getDouble("lng")), bundle.getString("name", ""))
+            drawRoute(
+                LatLng(bundle.getDouble("lat"), bundle.getDouble("lng")),
+                bundle.getString("name", "")
+            )
         }
     }
 
