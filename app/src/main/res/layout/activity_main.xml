@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Full-screen Map -->
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -15,6 +16,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
+    <!-- Search Bar -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardSearch"
         android:layout_width="0dp"
@@ -63,6 +65,7 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginEnd="4dp"
+                android:background="@drawable/profile_photo_bg"
                 android:src="@android:drawable/ic_menu_myplaces"
                 android:scaleType="centerCrop"
                 android:contentDescription="Profile"/>
@@ -70,35 +73,7 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <Button
-        android:id="@+id/btnLogout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="16dp"
-        android:text="Sair da Conta"
-        android:textSize="12sp"
-        android:textColor="@android:color/white"
-        android:backgroundTint="#4A2080"
-        app:layout_constraintTop_toBottomOf="@id/cardSearch"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/btnAdicionarAmigo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:text="Adicionar Viajante"
-        android:textAllCaps="false"
-        android:textColor="@android:color/white"
-        android:backgroundTint="#2D1060"
-        android:paddingHorizontal="24dp"
-        app:cornerRadius="24dp"
-        android:elevation="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
+    <!-- FAB Add (bottom-right) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
         android:layout_width="wrap_content"
@@ -110,6 +85,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
+    <!-- FAB Camera (above fabAdd) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabCamera"
         android:layout_width="wrap_content"
@@ -120,6 +96,20 @@
         android:src="@android:drawable/ic_menu_camera"
         app:tint="@android:color/white"
         app:layout_constraintBottom_toTopOf="@id/fabAdd"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- FAB Offline Map (above fabCamera, hidden until route is created) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabOffline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="12dp"
+        android:backgroundTint="#4A2080"
+        android:src="@android:drawable/ic_menu_save"
+        android:visibility="gone"
+        app:tint="@android:color/white"
+        app:layout_constraintBottom_toTopOf="@id/fabCamera"
         app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

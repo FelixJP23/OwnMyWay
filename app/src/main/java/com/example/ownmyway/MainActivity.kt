@@ -2,18 +2,12 @@ package com.example.ownmyway
 
 import android.Manifest
 import android.app.Activity
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
-import android.view.View
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -21,10 +15,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.lifecycle.lifecycleScope
-import com.example.ownmyway.model.Friendship
-import com.example.ownmyway.repository.FriendRepository
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
@@ -35,15 +25,8 @@ import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.realtime.realtime
-import io.github.jan.supabase.realtime.channel
-import io.github.jan.supabase.realtime.postgresChangeFlow
-import io.github.jan.supabase.realtime.PostgresAction
-import io.github.jan.supabase.realtime.decodeRecord
 import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
-
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -83,36 +66,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 1. Inicialização do Logout
-        val btnLogout = findViewById<Button>(R.id.btnLogout)
-        btnLogout.setOnClickListener { performLogout() }
-
-        // 2. ADIÇÃO: Botão de Adicionar Amigo (Exemplo de envio)
-        // Certifique-se de ter este ID no seu XML ou adapte para sua lógica de mapa
-        val btnAddFriend = findViewById<Button>(R.id.btnAdicionarAmigo)
-        btnAddFriend.setOnClickListener {
-            // Aqui você passaria o ID do usuário selecionado no mapa
-            val userIdDoOutro = "id-temporario-do-outro-usuario"
-            sendFriendshipRequest(userIdDoOutro)
-        }
-
-        // 3. Inicialização do Google Places e Location
         if (!Places.isInitialized()) Places.initialize(applicationContext, mapsApiKey)
         placesClient = Places.createClient(this)
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        // 4. Configuração do Mapa
         (supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
             .getMapAsync(this)
 
-        // 5. Listeners de UI e Fragment Result
-        setupUIListeners()
-
-        // 6. ADIÇÃO: Inicia a escuta de notificações em tempo real
-        setupFriendRequestObserver()
-    }
-
-    private fun setupUIListeners() {
         findViewById<TextView>(R.id.tvSearch).setOnClickListener { openAutocomplete() }
         findViewById<ImageButton>(R.id.btnFilter).setOnClickListener {
             FilterBottomSheet().show(supportFragmentManager, "filter")
@@ -120,6 +81,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         findViewById<FloatingActionButton>(R.id.fabCamera).setOnClickListener {
             startActivity(Intent(this, CameraActivity::class.java))
         }
+        findViewById<FloatingActionButton>(R.id.fabAdd).setOnClickListener { /* TODO */ }
 
         supportFragmentManager.setFragmentResultListener("filter_result", this) { _, bundle ->
             val names = bundle.getStringArrayList("categories") ?: return@setFragmentResultListener
@@ -132,90 +94,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    // --- LÓGICA DE AMIZADE E NOTIFICAÇÃO ---
-
-    private fun sendFriendshipRequest(targetUserId: String) {
-        lifecycleScope.launch {
-            try {
-                FriendRepository.sendFriendRequest(targetUserId)
-                Toast.makeText(this@MainActivity, "Pedido enviado!", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Log.e("Friendship", "Erro ao enviar pedido: ${e.message}")
-            }
-        }
-    }
-
-    private fun setupFriendRequestObserver() {
-        val myId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return
-
-        lifecycleScope.launch {
-            try {
-                // Cria canal Realtime para a tabela friendships
-                val channel = SupabaseClient.client.realtime.channel("friendships_channel")
-                val flow = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
-                    table = "friendships"
-                }
-
-                channel.subscribe()
-
-                flow.collect { action ->
-                    val newRequest = action.decodeRecord<Friendship>()
-                    // Só notifica se eu for o destinatário do pedido
-                    if (newRequest.receiver_id == myId) {
-                        showFriendNotification(newRequest)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("Realtime", "Erro ao conectar: ${e.message}")
-            }
-        }
-    }
-
-    private fun showFriendNotification(request: Friendship) {
-        val channelId = "friend_requests_channel"
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Pedidos de Amizade", NotificationManager.IMPORTANCE_HIGH)
-            notificationManager.createNotificationChannel(channel)
-        }
-
-        // Ao clicar, pode levar para uma tela de aceitar/recusar (a ser criada)
-        val intent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Novo pedido de amizade")
-            .setContentText("Alguém quer se conectar com você no OwnMyWay!")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
-
-        notificationManager.notify(request.sender_id.hashCode(), notification)
-    }
-
-    // --- MÉTODOS ORIGINAIS (MAPA, LOGOUT, ETC) ---
-
-    private fun performLogout() {
-        lifecycleScope.launch {
-            try {
-                SupabaseClient.client.auth.signOut()
-                val intent = Intent(this@MainActivity, SplashActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                finish()
-            } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, "Erro ao sair", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         try { map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style)) } catch (e: Exception) {}
-        map.uiSettings.isZoomControlsEnabled = false
+        map.uiSettings.isZoomControlsEnabled     = false
         map.uiSettings.isMyLocationButtonEnabled = false
 
         map.setOnMarkerClickListener { marker ->
@@ -300,7 +182,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         withContext(Dispatchers.IO) {
             try {
                 val url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
-                        "?location=${center.latitude},${center.longitude}&radius=3000&type=$type&key=$mapsApiKey"
+                    "?location=${center.latitude},${center.longitude}&radius=3000&type=$type&key=$mapsApiKey"
                 val body = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
                     .execute().body?.string() ?: return@withContext emptyList()
                 gson.fromJson(body, NearbySearchResponse::class.java).results ?: emptyList()
@@ -311,7 +193,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val url = "https://maps.googleapis.com/maps/api/place/details/json" +
-                        "?place_id=$placeId&fields=photos,rating,formatted_address,opening_hours&key=$mapsApiKey"
+                    "?place_id=$placeId&fields=photos,rating,formatted_address,opening_hours&key=$mapsApiKey"
                 val body = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
                     .execute().body?.string() ?: return@launch
                 val details = gson.fromJson(body, PlaceDetailsResponse::class.java).result
@@ -339,8 +221,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val url = "https://maps.googleapis.com/maps/api/directions/json" +
-                        "?origin=${origin.latitude},${origin.longitude}" +
-                        "&destination=${destination.latitude},${destination.longitude}&key=$mapsApiKey"
+                    "?origin=${origin.latitude},${origin.longitude}" +
+                    "&destination=${destination.latitude},${destination.longitude}&key=$mapsApiKey"
                 val body = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
                     .execute().body?.string() ?: return@launch
                 val routes = org.json.JSONObject(body).getJSONArray("routes")
