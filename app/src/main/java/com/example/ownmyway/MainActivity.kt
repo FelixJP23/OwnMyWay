@@ -29,6 +29,19 @@ import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import org.json.JSONArray
 import org.json.JSONObject
+import android.widget.FrameLayout
+import androidx.lifecycle.lifecycleScope
+import com.example.ownmyway.repository.FriendRepository
+import com.example.ownmyway.model.Friendship
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.realtime.realtime
+import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.decodeRecord
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import io.github.jan.supabase.realtime.channel
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -227,6 +240,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         intent?.getStringExtra("meal_suggestion")?.let {
             searchNearby(listOf(PlaceCategory.RESTAURANTS))
         }
+
+        findViewById<FrameLayout>(R.id.btnGerenciarAmigos).setOnClickListener {
+            findViewById<View>(R.id.badgeNovaAmizade).visibility = View.GONE
+            startActivity(Intent(this, FriendManagerActivity::class.java))
+        }
+
+        verificarPedidosPendentes()
+        setupRealtimeFriendRequests()
     }
 
     // ── Map ready ─────────────────────────────────────────────────────────
@@ -282,6 +303,38 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
         fusedLocationClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
+    }
+
+    private fun verificarPedidosPendentes() {
+        val myId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return
+        lifecycleScope.launch {
+            try {
+                if (FriendRepository.checkPendingRequests(myId)) {
+                    findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
+                }
+            } catch (e: Exception) { Log.e("Main", "Erro badge: ${e.message}") }
+        }
+    }
+
+    private fun setupRealtimeFriendRequests() {
+        val myId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return
+        lifecycleScope.launch {
+            try {
+                val channel = SupabaseClient.client.realtime.channel("public:friendships")
+                val flow = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
+                    table = "friendships"
+                }
+                channel.subscribe()
+                flow.collect { action ->
+                    val newRequest = action.decodeRecord<Friendship>()
+                    if (newRequest.receiver_id == myId && newRequest.status == "pending") {
+                        withContext(Dispatchers.Main) {
+                            findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
+                        }
+                    }
+                }
+            } catch (e: Exception) { Log.e("Realtime", "Erro observer: ${e.message}") }
+        }
     }
 
     // ── Autocomplete ──────────────────────────────────────────────────────
