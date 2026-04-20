@@ -16,7 +16,6 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
-        android:extractNativeLibs="false"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -67,10 +66,33 @@
 
         <activity
             android:name=".RegisterActivity"
-            android:exported="false"
-            android:label="Cadastro" />
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:label="Cadastro">
 
-        <activity android:name=".CameraActivity"/>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="ownmyway"
+                    android:host="register-callback" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".BudgetActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar" />
+        <activity
+            android:name=".SocialFeedActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar" />
+        <activity
+            android:name=".CameraActivity"
+/>
         <receiver
             android:name=".MealNotificationReceiver"
             android:exported="false"/>

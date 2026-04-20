@@ -14,7 +14,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Search Bar -->
     <androidx.cardview.widget.CardView
@@ -22,43 +22,45 @@
         android:layout_width="0dp"
         android:layout_height="56dp"
         android:layout_marginTop="48dp"
-        android:layout_marginHorizontal="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
+        app:cardBackgroundColor="#CCFFFFFF"
         app:cardCornerRadius="28dp"
-        app:cardElevation="6dp"
-        app:cardBackgroundColor="@android:color/white"
-        app:layout_constraintTop_toTopOf="parent"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toStartOf="@+id/cardWeather"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingHorizontal="8dp">
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp">
 
             <ImageButton
                 android:id="@+id/btnFilter"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_sort_by_size"
-                android:tint="#4A2080"
-                android:contentDescription="Filter"/>
+                android:contentDescription="Search"
+                android:src="@android:drawable/ic_menu_search"
+                app:tint="#4A2080" />
 
             <TextView
                 android:id="@+id/tvSearch"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:gravity="center_vertical"
                 android:paddingHorizontal="8dp"
-                android:text="Search for a place..."
-                android:textColor="#AAAAAA"
-                android:textSize="15sp"
-                android:background="?attr/selectableItemBackground"
-                android:focusable="true"
-                android:clickable="true"/>
+                android:text="Para onde vamos?"
+                android:textColor="#4A2080"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="38dp"
@@ -74,27 +76,89 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:clickable="true"
+                    android:contentDescription="Profile"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/default_profile"
-                    android:contentDescription="Profile" />
+                    android:src="@drawable/default_profile" />
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- FAB Add (bottom-right) -->
+    <!-- Weather Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardWeather"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="16dp"
+        app:cardBackgroundColor="#CCFFFFFF"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <ImageView
+                android:id="@+id/ivWeatherIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_report_image"
+                android:tint="#4A2080" />
+
+            <TextView
+                android:id="@+id/tvTemperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="25°C"
+                android:textColor="#4A2080"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvWeatherCondition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Limpo"
+                android:textColor="#884A2080"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:itemIconTint="#4A2080"
+        app:itemTextColor="#4A2080"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
+
+    <!-- FAB Add (above bottom nav) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="24dp"
+        android:layout_marginBottom="16dp"
         android:backgroundTint="#4A2080"
         android:src="@android:drawable/ic_input_add"
-        app:tint="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@android:color/white" />
 
     <!-- FAB Camera (above fabAdd) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -105,11 +169,11 @@
         android:layout_marginBottom="12dp"
         android:backgroundTint="#4A2080"
         android:src="@android:drawable/ic_menu_camera"
-        app:tint="@android:color/white"
         app:layout_constraintBottom_toTopOf="@id/fabAdd"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@android:color/white" />
 
-    <!-- FAB Offline Map (above fabCamera, hidden until route is created) -->
+    <!-- FAB Offline Map (above fabCamera) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabOffline"
         android:layout_width="wrap_content"
@@ -119,8 +183,8 @@
         android:backgroundTint="#4A2080"
         android:src="@android:drawable/ic_menu_save"
         android:visibility="gone"
-        app:tint="@android:color/white"
         app:layout_constraintBottom_toTopOf="@id/fabCamera"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@android:color/white" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
