@@ -30,6 +30,19 @@ import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import org.json.JSONArray
 import org.json.JSONObject
+import android.widget.FrameLayout
+import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.realtime.realtime
+import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.decodeRecord
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.example.ownmyway.model.Friendship
+import com.example.ownmyway.repository.FriendRepository
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -237,6 +250,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         intent?.getStringExtra("meal_suggestion")?.let {
             searchNearby(listOf(PlaceCategory.RESTAURANTS))
         }
+
+        findViewById<FrameLayout>(R.id.btnGerenciarAmigos).setOnClickListener {
+            findViewById<View>(R.id.badgeNovaAmizade).visibility = View.GONE
+            startActivity(Intent(this, FriendManagerActivity::class.java))
+        }
+
+        verificarPedidosPendentes()
+        setupRealtimeFriendRequests()
+
+        findViewById<android.widget.ImageView>(R.id.imgProfile).setOnClickListener {
+            val intent = Intent(this, ProfileActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun setupBottomNavigation() {
@@ -269,6 +295,58 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
+    }
+
+    private fun verificarPedidosPendentes() {
+        val myId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return
+        lifecycleScope.launch {
+            try {
+                if (FriendRepository.checkPendingRequests(myId)) {
+                    findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
+                }
+            } catch (e: Exception) { Log.e("Main", "Erro badge: ${e.message}") }
+        }
+    }
+
+    private fun setupRealtimeFriendRequests() {
+        val myId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return
+
+        lifecycleScope.launch {
+            try {
+                // 1. Criamos o canal
+                val channel = SupabaseClient.client.realtime.channel("pedidos_amizade")
+
+                // 2. Configuramos o fluxo para escutar INSERÇÕES na tabela friendships
+                val flow = channel.postgresChangeFlow<PostgresAction.Insert>(
+                    schema = "public"
+                ) {
+                    table = "friendships"
+                }
+
+                // 3. Ativamos a escuta
+                channel.subscribe()
+
+                // 4. O collect deve ficar aqui embaixo! Ele trava o código neste ponto
+                // esperando por novos dados do banco.
+                flow.collect { action ->
+                    val newRequest = action.decodeRecord<Friendship>()
+
+                    Log.d("FRIEND_DEBUG", "Novo pedido detectado de: ${newRequest.sender_id}")
+                    Log.d("FRIEND_DEBUG", "Destinatário: ${newRequest.receiver_id} | Eu: $myId")
+
+                    // Se o pedido for para MIM e estiver pendente
+                    if (newRequest.receiver_id == myId && newRequest.status == "pending") {
+                        withContext(Dispatchers.Main) {
+                            // Mostra a bolinha vermelha na UI
+                            findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
+                            Toast.makeText(this@MainActivity, "Novo pedido de amizade!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("Realtime", "Erro ao conectar no Realtime: ${e.message}")
+            }
+        }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {

@@ -4,31 +4,31 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginVertical="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="#F3E5F5"> <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:gravity="center_vertical">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/tvUserName"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="12dp"
-        android:gravity="center_vertical">
+        android:layout_weight="1"
+        android:text="Nome do Usuário"
+        android:textColor="#4A2080" android:textStyle="bold"
+        android:textSize="16sp" />
 
-        <TextView
-            android:id="@+id/tvUserName"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Nome do Usuário"
-            android:textColor="#333333"
-            android:textSize="16sp" />
-
-        <Button
-            android:id="@+id/btnAddFriend"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Conectar"
-            android:textSize="12sp"
-            android:backgroundTint="#4A2080" />
-    </LinearLayout>
+    <Button
+        android:id="@+id/btnAddFriend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Conectar"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:textAllCaps="false"
+        android:backgroundTint="#4A2080" /> </LinearLayout>
 </androidx.cardview.widget.CardView>
