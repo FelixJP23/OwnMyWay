@@ -10,51 +10,39 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.example.ownmyway.network.UserProfile
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.Polyline
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.location.*
+import com.google.android.gms.maps.*
+import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.postgrest
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import org.json.JSONArray
 import org.json.JSONObject
+import android.widget.FrameLayout
+import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.realtime.realtime
+import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.decodeRecord
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.example.ownmyway.model.Friendship
+import com.example.ownmyway.repository.FriendRepository
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -65,30 +53,30 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private var currentLatLng: LatLng? = null
 
     private lateinit var placesClient: PlacesClient
-    private val placeMarkers = mutableListOf<Marker>()
-    private val markerPlaceMap = mutableMapOf<String, NearbyPlace>()
-    private var routePolyline: Polyline? = null
+    val placeMarkers   = mutableListOf<Marker>()
+    val markerPlaceMap = mutableMapOf<String, NearbyPlace>()
+    var routePolyline: Polyline? = null
 
-    private val okHttpClient = OkHttpClient()
-    private val gson = Gson()
+    val okHttpClient = OkHttpClient()
+    val gson         = Gson()
 
-    // Clima
+    // ── Clima ─────────────────────────────────────────────────────────────
     private lateinit var tvTemperature: TextView
     private lateinit var tvWeatherCondition: TextView
-    private lateinit var ivWeatherIcon: ImageView
+    private lateinit var ivWeatherIcon: android.widget.ImageView
 
-    // Última rota criada
+    // ── Last built route (for offline download) ───────────────────────────
     private var lastRouteStops: List<NearbyPlace> = emptyList()
-    private var lastRouteId: String = ""
+    private var lastRouteId:    String             = ""
     private lateinit var fabOffline: FloatingActionButton
-    private lateinit var imgProfile: ImageView
 
-    private val mapsApiKey: String by lazy {
+    val mapsApiKey: String by lazy {
         packageManager
             .getApplicationInfo(packageName, PackageManager.GET_META_DATA)
             .metaData.getString("com.google.android.geo.API_KEY") ?: ""
     }
 
+    // ── Autocomplete launcher ─────────────────────────────────────────────
     private val searchLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -101,16 +89,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    // ── Route launcher ────────────────────────────────────────────────────
     private val routeLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            val data = result.data!!
-            val travelRhythm = data.getStringExtra("travel_rhythm") ?: "moderate"
-            val spendingLevel = data.getStringExtra("spending_level") ?: "medium"
-            val hobbies = data.getStringArrayListExtra("hobbies") ?: arrayListOf()
+            val data           = result.data!!
+            val travelRhythm   = data.getStringExtra("travel_rhythm")  ?: "moderate"
+            val spendingLevel  = data.getStringExtra("spending_level") ?: "medium"
+            val hobbies        = data.getStringArrayListExtra("hobbies") ?: arrayListOf()
             val hotelBreakfast = data.getBooleanExtra("hotel_breakfast", false)
 
+            // Deserialize mandatory stops
             val mandatoryStops = mutableListOf<NearbyPlace>()
             val stopsJson = data.getStringExtra("mandatory_stops_json")
             if (!stopsJson.isNullOrBlank()) {
@@ -118,19 +108,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     val arr = JSONArray(stopsJson)
                     for (i in 0 until arr.length()) {
                         val obj = JSONObject(arr.getString(i))
-                        mandatoryStops.add(
-                            NearbyPlace(
-                                place_id = obj.getString("place_id"),
-                                name = obj.getString("name"),
-                                geometry = PlaceGeometry(
-                                    PlaceLocation(
-                                        obj.getDouble("lat"),
-                                        obj.getDouble("lng")
-                                    )
-                                ),
-                                vicinity = obj.optString("vicinity")
-                            )
-                        )
+                        mandatoryStops.add(NearbyPlace(
+                            place_id = obj.getString("place_id"),
+                            name     = obj.getString("name"),
+                            geometry = PlaceGeometry(PlaceLocation(
+                                obj.getDouble("lat"), obj.getDouble("lng")
+                            )),
+                            vicinity = obj.optString("vicinity")
+                        ))
                     }
                 } catch (e: Exception) {
                     Log.e("MainActivity", "Mandatory stops parse error", e)
@@ -138,17 +123,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
 
             val prefs = RoutePreferences(
-                mandatoryStops = mandatoryStops,
-                hotelBreakfast = hotelBreakfast,
+                mandatoryStops  = mandatoryStops,
+                hotelBreakfast  = hotelBreakfast,
                 selectedHobbies = hobbies,
-                travelRhythm = travelRhythm,
-                spendingLevel = spendingLevel
+                travelRhythm    = travelRhythm,
+                spendingLevel   = spendingLevel
             )
 
             val origin = currentLatLng ?: map.cameraPosition.target
 
             CoroutineScope(Dispatchers.IO).launch {
-                val algorithm = RouteAlgorithm(mapsApiKey, okHttpClient, gson)
+                val algorithm   = RouteAlgorithm(mapsApiKey, okHttpClient, gson)
                 val routeResult = algorithm.buildRoute(origin, prefs)
 
                 withContext(Dispatchers.Main) {
@@ -166,13 +151,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                             MarkerOptions()
                                 .position(latLng)
                                 .title("${idx + 1}. ${place.name}")
-                                .icon(
-                                    BitmapDescriptorFactory.defaultMarker(
-                                        BitmapDescriptorFactory.HUE_VIOLET
-                                    )
-                                )
+                                .icon(BitmapDescriptorFactory.defaultMarker(
+                                    BitmapDescriptorFactory.HUE_VIOLET))
                         ) ?: return@forEachIndexed
-
                         placeMarkers.add(marker)
                         markerPlaceMap[marker.id] = place
                     }
@@ -188,9 +169,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                         map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120))
                     }
 
+                    // Store route for offline download and show the FAB
                     if (routeResult.stops.isNotEmpty()) {
                         lastRouteStops = routeResult.stops
-                        lastRouteId = System.currentTimeMillis().toString()
+                        lastRouteId    = System.currentTimeMillis().toString()
                         fabOffline.visibility = View.VISIBLE
                     } else {
                         fabOffline.visibility = View.GONE
@@ -214,6 +196,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         ivWeatherIcon = findViewById(R.id.ivWeatherIcon)
 
         setupBottomNavigation()
+
         MealNotificationReceiver.createChannel(this)
 
         if (!Places.isInitialized()) Places.initialize(applicationContext, mapsApiKey)
@@ -225,18 +208,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .getMapAsync(this)
 
         fabOffline = findViewById(R.id.fabOffline)
-        imgProfile = findViewById(R.id.imgProfile)
 
-        findViewById<TextView>(R.id.tvSearch).setOnClickListener {
-            openAutocomplete()
-        }
+        findViewById<TextView>(R.id.tvSearch).setOnClickListener { openAutocomplete() }
 
         findViewById<ImageButton>(R.id.btnFilter).setOnClickListener {
             FilterBottomSheet().show(supportFragmentManager, "filter")
-        }
-
-        imgProfile.setOnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
         }
 
         findViewById<FloatingActionButton>(R.id.fabCamera).setOnClickListener {
@@ -252,18 +228,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 Toast.makeText(this, "Create a route first!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
             startActivity(Intent(this, OfflineMapActivity::class.java).apply {
-                putExtra(OfflineMapActivity.EXTRA_ROUTE_ID, lastRouteId)
+                putExtra(OfflineMapActivity.EXTRA_ROUTE_ID,   lastRouteId)
                 putExtra(OfflineMapActivity.EXTRA_STOPS_JSON, buildStopsJson(lastRouteStops))
             })
         }
 
         supportFragmentManager.setFragmentResultListener("filter_result", this) { _, bundle ->
             val names = bundle.getStringArrayList("categories") ?: return@setFragmentResultListener
-            val categories = names.mapNotNull {
-                runCatching { PlaceCategory.valueOf(it) }.getOrNull()
-            }
+            val categories = names.mapNotNull { runCatching { PlaceCategory.valueOf(it) }.getOrNull() }
             searchNearby(categories)
         }
 
@@ -278,51 +251,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             searchNearby(listOf(PlaceCategory.RESTAURANTS))
         }
 
-        loadProfileImage()
-    }
+        findViewById<FrameLayout>(R.id.btnGerenciarAmigos).setOnClickListener {
+            findViewById<View>(R.id.badgeNovaAmizade).visibility = View.GONE
+            startActivity(Intent(this, FriendManagerActivity::class.java))
+        }
 
-    override fun onResume() {
-        super.onResume()
-        loadProfileImage()
-    }
+        verificarPedidosPendentes()
+        setupRealtimeFriendRequests()
 
-    private fun loadProfileImage() {
-        lifecycleScope.launch {
-            try {
-                val user = SupabaseClient.client.auth.currentUserOrNull()
-                if (user == null) {
-                    imgProfile.setImageResource(R.drawable.default_profile)
-                    return@launch
-                }
-
-                val profiles = SupabaseClient.client.postgrest["profiles"]
-                    .select {
-                        filter { eq("id", user.id) }
-                    }
-                    .decodeList<UserProfile>()
-
-                val profile = profiles.firstOrNull()
-                val avatarUrl = profile?.avatar_url
-
-                if (avatarUrl.isNullOrBlank()) {
-                    imgProfile.setImageResource(R.drawable.default_profile)
-                } else {
-                    Glide.with(this@MainActivity)
-                        .load(avatarUrl)
-                        .placeholder(R.drawable.default_profile)
-                        .error(R.drawable.default_profile)
-                        .centerCrop()
-                        .into(imgProfile)
-                }
-            } catch (e: Exception) {
-                imgProfile.setImageResource(R.drawable.default_profile)
-                Log.e("MainActivity", "Erro ao carregar foto de perfil", e)
-            }
+        findViewById<android.widget.ImageView>(R.id.imgProfile).setOnClickListener {
+            val intent = Intent(this, ProfileActivity::class.java)
+            startActivity(intent)
         }
     }
 
     private fun setupBottomNavigation() {
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        val bottomNav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
@@ -333,18 +277,81 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     }
                     true
                 }
-
                 R.id.nav_friends -> {
                     startActivity(Intent(this, SocialFeedActivity::class.java))
                     true
                 }
-
                 R.id.nav_budget -> {
                     startActivity(Intent(this, BudgetActivity::class.java))
                     true
                 }
-
                 else -> false
+            }
+        }
+    }
+
+    private fun performLogout() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
+    private fun verificarPedidosPendentes() {
+        val myId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return
+        lifecycleScope.launch {
+            try {
+                if (FriendRepository.checkPendingRequests(myId)) {
+                    findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
+                }
+            } catch (e: Exception) { Log.e("Main", "Erro badge: ${e.message}") }
+        }
+    }
+
+    private fun setupRealtimeFriendRequests() {
+        val myId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return
+
+        lifecycleScope.launch {
+            try {
+                // 1. Criamos o canal
+                val channel = SupabaseClient.client.realtime.channel("pedidos_amizade")
+
+                // 2. Configuramos o fluxo para escutar INSERÇÕES na tabela friendships
+                val flow = channel.postgresChangeFlow<PostgresAction.Insert>(
+                    schema = "public"
+                ) {
+                    table = "friendships"
+                }
+
+                // 3. Ativamos a escuta
+                channel.subscribe()
+
+                // 4. O collect deve ficar aqui embaixo! Ele trava o código neste ponto
+                // esperando por novos dados do banco.
+                flow.collect { action ->
+                    try {
+                        val newRequest = action.decodeRecord<Friendship>()
+
+                        Log.d("FRIEND_DEBUG", "Novo pedido detectado para: ${newRequest.receiver_id}")
+
+                        if (newRequest.receiver_id == myId && newRequest.status == "pending") {
+                            withContext(Dispatchers.Main) {
+                                findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
+                                Toast.makeText(this@MainActivity, "Novo pedido de amizade!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Se cair aqui, o problema é a classe Friendship que não bate com o Banco
+                        Log.e("FRIEND_DEBUG", "Erro ao decodificar pedido: ${e.message}")
+
+                        // DICA: Como teste, force a bolinha a aparecer se qualquer coisa chegar no canal
+                        withContext(Dispatchers.Main) {
+                            findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("Realtime", "Erro ao conectar no Realtime: ${e.message}")
             }
         }
     }
@@ -353,10 +360,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         map = googleMap
         try {
             map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style))
-        } catch (_: Exception) {
-        }
-
-        map.uiSettings.isZoomControlsEnabled = false
+        } catch (e: Exception) {}
+        map.uiSettings.isZoomControlsEnabled     = false
         map.uiSettings.isMyLocationButtonEnabled = false
 
         map.setOnMarkerClickListener { marker ->
@@ -365,47 +370,36 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 (place.photos ?: emptyList()).take(5).map { getPhotoUrl(it.photo_reference) }
             )
             PlaceDetailBottomSheet.newInstance(
-                name = place.name,
-                rating = place.rating ?: 0.0,
-                address = place.vicinity ?: "",
-                isOpen = place.opening_hours?.open_now,
+                name      = place.name,
+                rating    = place.rating ?: 0.0,
+                address   = place.vicinity ?: "",
+                isOpen    = place.opening_hours?.open_now,
                 photoUrls = photoUrls,
-                lat = place.geometry.location.lat,
-                lng = place.geometry.location.lng
+                lat       = place.geometry.location.lat,
+                lng       = place.geometry.location.lng
             ).show(supportFragmentManager, "place_detail")
             true
         }
-
         requestLocationPermission()
     }
 
     private fun requestLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-            startLocationUpdates()
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                200
-            )
-        }
+            == PackageManager.PERMISSION_GRANTED) startLocationUpdates()
+        else ActivityCompat.requestPermissions(
+            this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 200
+        )
     }
 
     private fun startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) return
-
+            != PackageManager.PERMISSION_GRANTED) return
         map.isMyLocationEnabled = true
         val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 3000).build()
-
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 val loc = result.lastLocation ?: return
                 currentLatLng = LatLng(loc.latitude, loc.longitude)
-
                 if (!locationInitialized) {
                     map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng!!, 15f))
                     locationInitialized = true
@@ -413,12 +407,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         }
-
-        fusedLocationClient.requestLocationUpdates(
-            request,
-            locationCallback,
-            Looper.getMainLooper()
-        )
+        fusedLocationClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
     }
 
     private fun fetchWeather(latLng: LatLng) {
@@ -427,11 +416,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 val url = "https://api.open-meteo.com/v1/forecast" +
                         "?latitude=${latLng.latitude}&longitude=${latLng.longitude}" +
                         "&current=temperature_2m,weather_code"
-
-                val response = okHttpClient.newCall(
-                    okhttp3.Request.Builder().url(url).build()
-                ).execute()
-
+                
+                val response = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build()).execute()
                 val body = response.body?.string() ?: ""
                 val json = JSONObject(body)
                 val current = json.getJSONObject("current")
@@ -461,7 +447,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             95, 96, 99 -> Pair(android.R.drawable.ic_dialog_alert, "Tempestade")
             else -> Pair(android.R.drawable.ic_menu_compass, "---")
         }
-
         ivWeatherIcon.setImageResource(iconRes)
         ivWeatherIcon.setColorFilter(Color.parseColor("#4A2080"))
         tvWeatherCondition.text = condition
@@ -469,10 +454,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun openAutocomplete() {
         val fields = listOf(
-            Place.Field.ID,
-            Place.Field.NAME,
-            Place.Field.LAT_LNG,
-            Place.Field.ADDRESS
+            Place.Field.ID, Place.Field.NAME,
+            Place.Field.LAT_LNG, Place.Field.ADDRESS
         )
         searchLauncher.launch(
             Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields).build(this)
@@ -495,35 +478,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     Toast.makeText(this@MainActivity, "No places found nearby", Toast.LENGTH_SHORT).show()
                     return@withContext
                 }
-
                 allPlaces.forEach { place ->
                     val latLng = LatLng(place.geometry.location.lat, place.geometry.location.lng)
                     val marker = map.addMarker(
                         MarkerOptions()
-                            .position(latLng)
-                            .title(place.name)
-                            .icon(
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_VIOLET
-                                )
-                            )
+                            .position(latLng).title(place.name)
+                            .icon(BitmapDescriptorFactory.defaultMarker(
+                                BitmapDescriptorFactory.HUE_VIOLET))
                     ) ?: return@forEach
-
                     placeMarkers.add(marker)
                     markerPlaceMap[marker.id] = place
                 }
-
-                if (placeMarkers.isNotEmpty()) {
-                    map.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            LatLng(
-                                allPlaces[0].geometry.location.lat,
-                                allPlaces[0].geometry.location.lng
-                            ),
-                            13f
-                        )
-                    )
-                }
+                if (placeMarkers.isNotEmpty())
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        LatLng(allPlaces[0].geometry.location.lat,
+                               allPlaces[0].geometry.location.lng), 13f))
             }
         }
     }
@@ -532,17 +501,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         withContext(Dispatchers.IO) {
             try {
                 val url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
-                        "?location=${center.latitude},${center.longitude}" +
-                        "&radius=3000&type=$type&key=$mapsApiKey"
-
+                    "?location=${center.latitude},${center.longitude}" +
+                    "&radius=3000&type=$type&key=$mapsApiKey"
                 val body = okHttpClient.newCall(
                     okhttp3.Request.Builder().url(url).build()
                 ).execute().body?.string() ?: return@withContext emptyList()
-
                 gson.fromJson(body, NearbySearchResponse::class.java).results ?: emptyList()
             } catch (e: Exception) {
-                Log.e("MainActivity", "Nearby: $type", e)
-                emptyList()
+                Log.e("MainActivity", "Nearby: $type", e); emptyList()
             }
         }
 
@@ -550,28 +516,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val url = "https://maps.googleapis.com/maps/api/place/details/json" +
-                        "?place_id=$placeId" +
-                        "&fields=photos,rating,formatted_address,opening_hours" +
-                        "&key=$mapsApiKey"
-
+                    "?place_id=$placeId" +
+                    "&fields=photos,rating,formatted_address,opening_hours" +
+                    "&key=$mapsApiKey"
                 val body = okHttpClient.newCall(
                     okhttp3.Request.Builder().url(url).build()
                 ).execute().body?.string() ?: return@launch
-
                 val details = gson.fromJson(body, PlaceDetailsResponse::class.java).result
                 val photoUrls = ArrayList(
                     (details?.photos ?: emptyList()).take(5).map { getPhotoUrl(it.photo_reference) }
                 )
-
                 withContext(Dispatchers.Main) {
                     PlaceDetailBottomSheet.newInstance(
-                        name = name,
-                        rating = details?.rating ?: 0.0,
-                        address = details?.formatted_address ?: "",
-                        isOpen = details?.opening_hours?.open_now,
+                        name      = name,
+                        rating    = details?.rating ?: 0.0,
+                        address   = details?.formatted_address ?: "",
+                        isOpen    = details?.opening_hours?.open_now,
                         photoUrls = photoUrls,
-                        lat = latLng.latitude,
-                        lng = latLng.longitude
+                        lat       = latLng.latitude,
+                        lng       = latLng.longitude
                     ).show(supportFragmentManager, "place_detail")
                 }
             } catch (e: Exception) {
@@ -585,30 +548,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             Toast.makeText(this, "Could not get your location", Toast.LENGTH_SHORT).show()
             return
         }
-
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val url = "https://maps.googleapis.com/maps/api/directions/json" +
-                        "?origin=${origin.latitude},${origin.longitude}" +
-                        "&destination=${destination.latitude},${destination.longitude}" +
-                        "&key=$mapsApiKey"
-
+                    "?origin=${origin.latitude},${origin.longitude}" +
+                    "&destination=${destination.latitude},${destination.longitude}" +
+                    "&key=$mapsApiKey"
                 val body = okHttpClient.newCall(
                     okhttp3.Request.Builder().url(url).build()
                 ).execute().body?.string() ?: return@launch
-
                 val routes = JSONObject(body).getJSONArray("routes")
                 if (routes.length() == 0) {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@MainActivity, "No route found", Toast.LENGTH_SHORT).show()
-                    }
-                    return@launch
+                    }; return@launch
                 }
-
                 val points = routes.getJSONObject(0)
-                    .getJSONObject("overview_polyline")
-                    .getString("points")
-
+                    .getJSONObject("overview_polyline").getString("points")
                 withContext(Dispatchers.Main) {
                     routePolyline?.remove()
                     routePolyline = map.addPolyline(
@@ -618,12 +574,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                             .width(12f)
                             .geodesic(true)
                     )
-
                     val bounds = LatLngBounds.builder()
-                        .include(origin)
-                        .include(destination)
-                        .build()
-
+                        .include(origin).include(destination).build()
                     map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120))
                     Toast.makeText(this@MainActivity, "Route to $placeName", Toast.LENGTH_SHORT).show()
                 }
@@ -635,16 +587,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun getPhotoUrl(ref: String) =
         "https://maps.googleapis.com/maps/api/place/photo" +
-                "?photo_reference=$ref&maxwidth=800&key=$mapsApiKey"
+            "?photo_reference=$ref&maxwidth=800&key=$mapsApiKey"
 
     private fun buildStopsJson(stops: List<NearbyPlace>): String {
         val arr = JSONArray()
         stops.forEach { place ->
             arr.put(JSONObject().apply {
                 put("place_id", place.place_id)
-                put("name", place.name)
-                put("lat", place.geometry.location.lat)
-                put("lng", place.geometry.location.lng)
+                put("name",     place.name)
+                put("lat",      place.geometry.location.lat)
+                put("lng",      place.geometry.location.lng)
                 put("vicinity", place.vicinity ?: "")
             })
         }
@@ -653,55 +605,30 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun decodePolyline(encoded: String): List<LatLng> {
         val result = mutableListOf<LatLng>()
-        var index = 0
-        var lat = 0
-        var lng = 0
-
+        var index = 0; var lat = 0; var lng = 0
         while (index < encoded.length) {
-            var b: Int
-            var shift = 0
-            var res = 0
-
-            do {
-                b = encoded[index++].code - 63
-                res = res or ((b and 0x1f) shl shift)
-                shift += 5
-            } while (b >= 0x20)
-
+            var b: Int; var shift = 0; var res = 0
+            do { b = encoded[index++].code - 63; res = res or (b and 0x1f shl shift); shift += 5 } while (b >= 0x20)
             lat += if (res and 1 != 0) (res shr 1).inv() else res shr 1
-
-            shift = 0
-            res = 0
-
-            do {
-                b = encoded[index++].code - 63
-                res = res or ((b and 0x1f) shl shift)
-                shift += 5
-            } while (b >= 0x20)
-
+            shift = 0; res = 0
+            do { b = encoded[index++].code - 63; res = res or (b and 0x1f shl shift); shift += 5 } while (b >= 0x20)
             lng += if (res and 1 != 0) (res shr 1).inv() else res shr 1
-
             result.add(LatLng(lat / 1E5, lng / 1E5))
         }
-
         return result
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 200 && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == 200 && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED)
             startLocationUpdates()
-        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::locationCallback.isInitialized) {
+        if (::locationCallback.isInitialized)
             fusedLocationClient.removeLocationUpdates(locationCallback)
-        }
     }
 }

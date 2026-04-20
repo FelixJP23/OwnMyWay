@@ -120,4 +120,7 @@ dependencies {
 
     // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // Realtime:
+    implementation("io.github.jan-tennert.supabase:realtime-kt:3.0.1")
 }
