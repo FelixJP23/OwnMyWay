@@ -66,6 +66,7 @@ android {
             useLegacyPackaging = false
         }
     }
+    buildToolsVersion = "36.0.0"
 }
 
 dependencies {

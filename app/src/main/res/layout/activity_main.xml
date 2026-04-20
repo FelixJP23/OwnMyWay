@@ -60,15 +60,26 @@
                 android:focusable="true"
                 android:clickable="true"/>
 
-            <ImageView
-                android:id="@+id/imgProfile"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="38dp"
+                android:layout_height="38dp"
                 android:layout_marginEnd="4dp"
-                android:background="@drawable/profile_photo_bg"
-                android:src="@android:drawable/ic_menu_myplaces"
-                android:scaleType="centerCrop"
-                android:contentDescription="Profile"/>
+                app:cardCornerRadius="19dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#7A4AF2"
+                app:strokeWidth="2dp">
+
+                <ImageView
+                    android:id="@+id/imgProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/default_profile"
+                    android:contentDescription="Profile" />
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

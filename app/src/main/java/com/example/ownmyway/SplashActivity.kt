@@ -33,6 +33,8 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
 
     private val handler = Handler(Looper.getMainLooper())
 
+    private val introBgColor = Color.parseColor("#FDFDFB")
+
     private var mediaPlayer: MediaPlayer? = null
     private var videoSurface: Surface? = null
 
@@ -108,7 +110,8 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         videoPrepared = false
         videoRevealed = false
 
-        rootLayout.setBackgroundColor(Color.WHITE)
+        rootLayout.setBackgroundColor(introBgColor)
+        videoCover.setBackgroundColor(introBgColor)
 
         introPhase.visibility = View.VISIBLE
         introPhase.alpha = 1f
