@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.CheckBox
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
@@ -18,37 +17,42 @@ import kotlinx.coroutines.launch
 class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        supportActionBar?.hide()
         super.onCreate(savedInstanceState)
+
+        val currentSession = SupabaseClient.client.auth.currentSessionOrNull()
+        if (currentSession != null) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
+
+        supportActionBar?.hide()
         setContentView(R.layout.activity_login)
 
         val etEmail = findViewById<TextInputEditText>(R.id.etEmail)
         val etPassword = findViewById<TextInputEditText>(R.id.etPassword)
-        val cbRememberMe = findViewById<CheckBox>(R.id.cbRememberMe)
 
-        // 1. Botão de Voltar (Requisito da Task)
+        // Botão de Voltar
         findViewById<ImageButton>(R.id.btnBack).setOnClickListener {
             val intent = Intent(this, SplashActivity::class.java)
-
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-
             startActivity(intent)
             finish()
         }
 
-        // 2. Botão de Login com animação simples
+        // Botão de Login (Removido o parâmetro do CheckBox)
         findViewById<Button>(R.id.btnLogin).setOnClickListener {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
             if (email.isNotEmpty() && password.isNotEmpty()) {
-                performLogin(email, password, cbRememberMe.isChecked)
+                performLogin(email, password)
             } else {
                 Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // 3. Esqueci a Senha (Requisito da Task)
+        // Esqueci a Senha
         findViewById<TextView>(R.id.tvForgotPassword).setOnClickListener {
             val email = etEmail.text.toString().trim()
             if (email.isNotEmpty()) {
@@ -58,28 +62,23 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        // 4. Não tem uma conta? (Requisito da Task)
+        // Registrar
         findViewById<TextView>(R.id.tvRegisterLink).setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
         }
     }
 
-    private fun performLogin(email: String, pass: String, remember: Boolean) {
+    private fun performLogin(email: String, pass: String) {
         lifecycleScope.launch {
             try {
-                // Autenticação no Supabase
                 SupabaseClient.client.auth.signInWith(Email) {
                     this.email = email
                     this.password = pass
                 }
 
-                // Lógica de "Manter Conectado"
-                // O Supabase já mantém a sessão, mas aqui você pode salvar
-                // uma flag se desejar um controle manual mais rígido.
-                if (remember) {
-                    Log.d("Login", "Usuário optou por manter conectado")
-                }
+                // O Supabase já persiste o token localmente por padrão.
+                // Ao entrar aqui, a próxima vez que o app abrir, o 'currentSessionOrNull()' será positivo.
 
                 Toast.makeText(this@LoginActivity, "Bem-vindo!", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this@LoginActivity, MainActivity::class.java))

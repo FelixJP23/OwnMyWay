@@ -329,17 +329,24 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 // 4. O collect deve ficar aqui embaixo! Ele trava o código neste ponto
                 // esperando por novos dados do banco.
                 flow.collect { action ->
-                    val newRequest = action.decodeRecord<Friendship>()
+                    try {
+                        val newRequest = action.decodeRecord<Friendship>()
 
-                    Log.d("FRIEND_DEBUG", "Novo pedido detectado de: ${newRequest.sender_id}")
-                    Log.d("FRIEND_DEBUG", "Destinatário: ${newRequest.receiver_id} | Eu: $myId")
+                        Log.d("FRIEND_DEBUG", "Novo pedido detectado para: ${newRequest.receiver_id}")
 
-                    // Se o pedido for para MIM e estiver pendente
-                    if (newRequest.receiver_id == myId && newRequest.status == "pending") {
+                        if (newRequest.receiver_id == myId && newRequest.status == "pending") {
+                            withContext(Dispatchers.Main) {
+                                findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
+                                Toast.makeText(this@MainActivity, "Novo pedido de amizade!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Se cair aqui, o problema é a classe Friendship que não bate com o Banco
+                        Log.e("FRIEND_DEBUG", "Erro ao decodificar pedido: ${e.message}")
+
+                        // DICA: Como teste, force a bolinha a aparecer se qualquer coisa chegar no canal
                         withContext(Dispatchers.Main) {
-                            // Mostra a bolinha vermelha na UI
                             findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
-                            Toast.makeText(this@MainActivity, "Novo pedido de amizade!", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }

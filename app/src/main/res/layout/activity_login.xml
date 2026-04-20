@@ -82,16 +82,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tilPassword" />
 
-    <CheckBox
-        android:id="@+id/cbRememberMe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Manter conectado"
-        android:textColor="#666666"
-        app:buttonTint="#4A2080"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvForgotPassword"
-        app:layout_constraintBottom_toBottomOf="@id/tvForgotPassword"/>
 
     <Button
         android:id="@+id/btnLogin"
