@@ -66,8 +66,21 @@
 
         <activity
             android:name=".RegisterActivity"
-            android:exported="false"
-            android:label="Cadastro" />
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:label="Cadastro">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="ownmyway"
+                    android:host="register-callback" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".BudgetActivity"

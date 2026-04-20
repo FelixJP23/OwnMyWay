@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
-        android:text="1 de 4"
+        android:text="1 de 5"
         android:textColor="#7B2BE2"
         android:textSize="14sp"
         android:textStyle="bold" />
@@ -26,7 +26,7 @@
         android:layout_height="6dp"
         android:layout_marginTop="10dp"
         android:indeterminate="false"
-        android:max="4"
+        android:max="5"
         android:progress="1"
         android:progressBackgroundTint="#DCCEFF"
         android:progressTint="#7B2BE2" />
@@ -209,6 +209,42 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="#DDDDDD" />
+        </LinearLayout>
+
+        <!-- ETAPA 5 - VERIFICAÇÃO DE EMAIL -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvVerificationEmailLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Email enviado para:"
+                android:textColor="#777777"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvVerificationEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text=""
+                android:textColor="#111111"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvVerificationStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text=""
+                android:textColor="#16A34A"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
         </LinearLayout>
 
     </ViewFlipper>
