@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#FFFFFF"
-        app:elevation="4dp"
+        app:elevation="0dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.appcompat.widget.Toolbar
@@ -18,7 +18,14 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="Explorar Amigos"
-            app:titleTextColor="#4A2080" />
+            app:titleTextColor="#4A2080"
+            app:navigationIcon="@android:drawable/ic_menu_revert"
+            app:navigationIconTint="#4A2080" />
+            
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EEEEEE" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView

@@ -17,6 +17,11 @@ class BudgetActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_budget)
 
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbarBudget)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        toolbar.setNavigationOnClickListener { finish() }
+
         tvBalance = findViewById(R.id.tvTotalBalance)
         etAmount = findViewById(R.id.etAmount)
 

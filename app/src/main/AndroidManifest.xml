@@ -72,11 +72,11 @@
         <activity
             android:name=".BudgetActivity"
             android:exported="false"
-            android:theme="@style/Theme.OwnMyWay" />
+            android:theme="@style/Theme.OwnMyWay.NoActionBar" />
         <activity
             android:name=".SocialFeedActivity"
             android:exported="false"
-            android:theme="@style/Theme.OwnMyWay" />
+            android:theme="@style/Theme.OwnMyWay.NoActionBar" />
         <activity
             android:name=".CameraActivity"
 />

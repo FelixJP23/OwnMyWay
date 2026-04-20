@@ -49,6 +49,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     // ── Clima ─────────────────────────────────────────────────────────────
     private lateinit var tvTemperature: TextView
+    private lateinit var tvWeatherCondition: TextView
     private lateinit var ivWeatherIcon: android.widget.ImageView
 
     // ── Last built route (for offline download) ───────────────────────────
@@ -178,11 +179,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         setContentView(R.layout.activity_main)
 
         tvTemperature = findViewById(R.id.tvTemperature)
+        tvWeatherCondition = findViewById(R.id.tvWeatherCondition)
         ivWeatherIcon = findViewById(R.id.ivWeatherIcon)
 
         setupBottomNavigation()
-
-        findViewById<android.view.View>(R.id.btnLogout).setOnClickListener { performLogout() }
 
         MealNotificationReceiver.createChannel(this)
 
@@ -326,14 +326,45 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun fetchWeather(latLng: LatLng) {
-        val mockTemp = (20..32).random()
-        tvTemperature.text = "${mockTemp}°C"
-        
-        if (mockTemp > 25) {
-            ivWeatherIcon.setImageResource(android.R.drawable.ic_menu_day)
-        } else {
-            ivWeatherIcon.setImageResource(android.R.drawable.ic_menu_gallery)
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val url = "https://api.open-meteo.com/v1/forecast" +
+                        "?latitude=${latLng.latitude}&longitude=${latLng.longitude}" +
+                        "&current=temperature_2m,weather_code"
+                
+                val response = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build()).execute()
+                val body = response.body?.string() ?: ""
+                val json = JSONObject(body)
+                val current = json.getJSONObject("current")
+                val temp = current.getDouble("temperature_2m")
+                val code = current.getInt("weather_code")
+
+                withContext(Dispatchers.Main) {
+                    tvTemperature.text = "${temp.toInt()}°C"
+                    updateWeatherUI(code)
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Weather Error", e)
+                withContext(Dispatchers.Main) {
+                    tvWeatherCondition.text = "Error"
+                }
+            }
         }
+    }
+
+    private fun updateWeatherUI(code: Int) {
+        val (iconRes, condition) = when (code) {
+            0 -> Pair(android.R.drawable.ic_menu_day, "Céu Limpo")
+            1, 2, 3 -> Pair(android.R.drawable.ic_menu_agenda, "Nublado")
+            45, 48 -> Pair(android.R.drawable.ic_menu_view, "Neblina")
+            51, 53, 55, 61, 63, 65, 80, 81, 82 -> Pair(android.R.drawable.ic_menu_directions, "Chuva")
+            71, 73, 75, 85, 86 -> Pair(android.R.drawable.ic_menu_help, "Neve")
+            95, 96, 99 -> Pair(android.R.drawable.ic_dialog_alert, "Tempestade")
+            else -> Pair(android.R.drawable.ic_menu_compass, "---")
+        }
+        ivWeatherIcon.setImageResource(iconRes)
+        ivWeatherIcon.setColorFilter(Color.parseColor("#4A2080"))
+        tvWeatherCondition.text = condition
     }
 
     private fun openAutocomplete() {
