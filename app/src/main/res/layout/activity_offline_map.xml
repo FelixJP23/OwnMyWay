@@ -39,7 +39,7 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:contentDescription="Close"/>
 
         <LinearLayout
@@ -128,7 +128,7 @@
             android:layout_marginBottom="8dp"
             android:background="@drawable/bg_zoom_btn"
             android:src="@android:drawable/ic_input_add"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:contentDescription="Zoom in"/>
 
         <ImageButton
@@ -137,7 +137,7 @@
             android:layout_height="48dp"
             android:background="@drawable/bg_zoom_btn"
             android:src="@android:drawable/ic_menu_revert"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:contentDescription="Zoom out"/>
 
     </LinearLayout>

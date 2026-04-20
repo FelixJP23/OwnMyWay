@@ -16,7 +16,6 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
-        android:extractNativeLibs="false"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -83,7 +82,17 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".CameraActivity"/>
+        <activity
+            android:name=".BudgetActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar" />
+        <activity
+            android:name=".SocialFeedActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar" />
+        <activity
+            android:name=".CameraActivity"
+/>
         <receiver
             android:name=".MealNotificationReceiver"
             android:exported="false"/>

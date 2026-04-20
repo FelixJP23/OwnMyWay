@@ -24,7 +24,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@android:drawable/ic_menu_sort_by_size"
-                android:tint="@color/omw_purple_mid"
+                app:tint="@color/omw_purple_mid"
                 app:layout_constraintBottom_toBottomOf="@+id/tvHeaderTitle"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/tvHeaderTitle" />
@@ -46,7 +46,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@android:drawable/ic_menu_manage"
-                android:tint="@color/omw_purple_mid"
+                app:tint="@color/omw_purple_mid"
                 app:layout_constraintBottom_toBottomOf="@id/tvHeaderTitle"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/tvHeaderTitle" />
@@ -91,7 +91,7 @@
                     android:background="@drawable/bg_profile_edit_fab"
                     android:padding="10dp"
                     android:src="@android:drawable/ic_menu_edit"
-                    android:tint="@android:color/white" />
+                    app:tint="@android:color/white" />
             </FrameLayout>
         </androidx.cardview.widget.CardView>
 
