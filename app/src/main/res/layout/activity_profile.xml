@@ -24,7 +24,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@android:drawable/ic_menu_sort_by_size"
-                android:tint="@color/omw_purple_mid"
+                app:tint="@color/omw_purple_mid"
                 app:layout_constraintBottom_toBottomOf="@+id/tvHeaderTitle"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/tvHeaderTitle" />
@@ -46,7 +46,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@android:drawable/ic_menu_manage"
-                android:tint="@color/omw_purple_mid"
+                app:tint="@color/omw_purple_mid"
                 app:layout_constraintBottom_toBottomOf="@id/tvHeaderTitle"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/tvHeaderTitle" />
@@ -78,7 +78,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
-                        android:src="@android:drawable/sym_def_app_icon" />
+                        android:src="@drawable/default_profile" />
                 </androidx.cardview.widget.CardView>
 
                 <ImageView
@@ -91,7 +91,7 @@
                     android:background="@drawable/bg_profile_edit_fab"
                     android:padding="10dp"
                     android:src="@android:drawable/ic_menu_edit"
-                    android:tint="@android:color/white" />
+                    app:tint="@android:color/white" />
             </FrameLayout>
         </androidx.cardview.widget.CardView>
 
@@ -172,93 +172,69 @@
                 android:textSize="16sp" />
         </androidx.cardview.widget.CardView>
 
-        <LinearLayout
-            android:id="@+id/sectionLastDestination"
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:text="◉ Lugares visitados"
+            android:textColor="#1F2140"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="#ECE7F4"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="0dp">
+
+            <EditText
+                android:id="@+id/etVisitedPlaces"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:gravity="top|start"
+                android:hint="Ex: Palmas, Goiânia, São Paulo&#10;Um por linha ou separado por vírgulas."
+                android:inputType="textMultiLine|textCapSentences"
+                android:minHeight="120dp"
+                android:padding="22dp"
+                android:textColor="#353752"
+                android:textColorHint="#8E90A5"
+                android:textSize="16sp" />
+        </androidx.cardview.widget.CardView>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="◉ Último Destino"
-                    android:textColor="#1F2140"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:text="✈ Quero visitar"
+            android:textColor="#1F2140"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/btnEditLastDestination"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_badge_purple"
-                    android:paddingStart="12dp"
-                    android:paddingTop="6dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="6dp"
-                    android:text="EDITAR"
-                    android:textColor="@color/omw_purple_mid"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="#ECE7F4"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="0dp">
 
-            <androidx.cardview.widget.CardView
+            <EditText
+                android:id="@+id/etWantToVisit"
                 android:layout_width="match_parent"
-                android:layout_height="180dp"
-                android:layout_marginTop="14dp"
-                app:cardCornerRadius="28dp"
-                app:cardElevation="0dp">
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="#7D8EA4" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="#50000000" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="bottom"
-                        android:orientation="vertical"
-                        android:padding="18dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Último destino"
-                            android:textColor="#E6E6E6"
-                            android:textSize="11sp" />
-
-                        <TextView
-                            android:id="@+id/tvLastDestinationValue"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:textColor="@android:color/white"
-                            android:textSize="22sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </FrameLayout>
-            </androidx.cardview.widget.CardView>
-        </LinearLayout>
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:gravity="top|start"
+                android:hint="Ex: Japão, Chile, Itália&#10;Um por linha ou separado por vírgulas."
+                android:inputType="textMultiLine|textCapSentences"
+                android:minHeight="120dp"
+                android:padding="22dp"
+                android:textColor="#353752"
+                android:textColorHint="#8E90A5"
+                android:textSize="16sp" />
+        </androidx.cardview.widget.CardView>
 
         <TextView
             android:layout_width="wrap_content"
@@ -406,5 +382,18 @@
             android:text="Cancelar Alterações"
             android:textColor="#626376"
             android:textSize="17sp" />
+
+        <Button
+            android:id="@+id/btnLogoutProfile"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#B03A48"
+            android:text="Sair da conta"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="17sp"
+            android:textStyle="bold" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

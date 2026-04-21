@@ -8,6 +8,12 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -25,12 +31,16 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
-
+        <activity
+            android:name=".CreateRouteActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar"/>
         <activity
             android:name=".SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.OwnMyWay.Splash">
             <intent-filter>
+
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -46,7 +56,8 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar"/>
 
         <activity
             android:name=".OnboardingActivity"
@@ -55,9 +66,44 @@
 
         <activity
             android:name=".RegisterActivity"
-            android:exported="false"
-            android:label="Cadastro" />
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:label="Cadastro">
 
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="ownmyway"
+                    android:host="register-callback" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".BudgetActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar" />
+        <activity
+            android:name=".SocialFeedActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar" />
+        <activity
+            android:name=".CameraActivity"
+/>
+        <receiver
+            android:name=".MealNotificationReceiver"
+            android:exported="false"/>
+        <activity
+            android:name=".OfflineMapActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar"/>
+
+        <activity
+            android:name=".FriendManagerActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

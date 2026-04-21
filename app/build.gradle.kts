@@ -34,9 +34,10 @@ android {
             "\"${localProperties["SUPABASE_URL"] ?: ""}\"")
         buildConfigField("String", "SUPABASE_KEY",
             "\"${localProperties["SUPABASE_KEY"] ?: ""}\"")
+        buildConfigField("String", "GEMINI_API_KEY",
+            "\"${localProperties["GEMINI_API_KEY"] ?: ""}\"")
     }
 
-    // buildFeatures must be here, inside android{} but OUTSIDE defaultConfig{}
     buildFeatures {
         buildConfig = true
         compose = false
@@ -61,7 +62,11 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+        jniLibs {
+            useLegacyPackaging = false
+        }
     }
+    buildToolsVersion = "36.0.0"
 }
 
 dependencies {
@@ -80,7 +85,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Google Maps
-    implementation("com.google.android.gms:play-services-maps:20.0.0")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
     // Supabase v3
@@ -88,6 +93,34 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.ktor:ktor-client-android:3.0.1")
-    implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.github.jan-tennert.supabase:storage-kt")
+
+    // CameraX — 1.4.0 ships 16KB-aligned native libs
+    implementation("androidx.camera:camera-core:1.4.0")
+    implementation("androidx.camera:camera-camera2:1.4.0")
+    implementation("androidx.camera:camera-lifecycle:1.4.0")
+    implementation("androidx.camera:camera-view:1.4.0")
+
+    // Retrofit + OkHttp
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Gson
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Places SDK — 4.1.0
+    implementation("com.google.android.libraries.places:places:4.1.0")
+
+    // ViewPager2
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
+
+    // CardView
+    implementation("androidx.cardview:cardview:1.0.0")
+
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // Realtime:
+    implementation("io.github.jan-tennert.supabase:realtime-kt:3.0.1")
 }
