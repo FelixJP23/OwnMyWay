@@ -93,10 +93,16 @@ class LoginActivity : AppCompatActivity() {
     private fun resetPassword(email: String) {
         lifecycleScope.launch {
             try {
-                SupabaseClient.client.auth.resetPasswordForEmail(email)
-                Toast.makeText(this@LoginActivity, "E-mail de recuperação enviado!", Toast.LENGTH_LONG).show()
+                SupabaseClient.client.auth.resetPasswordForEmail(
+                    email = email,
+                    redirectUrl = "ownmyway://reset-password"
+                )
+                Toast.makeText(this@LoginActivity, "E-mail enviado! Verifique sua caixa de entrada.", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
-                Toast.makeText(this@LoginActivity, "Erro ao enviar e-mail", Toast.LENGTH_SHORT).show()
+                // Isso vai mostrar se o erro é 'User not found' ou 'Rate limit exceeded'
+                val errorMessage = e.localizedMessage ?: "Erro desconhecido"
+                Log.e("ResetError", errorMessage)
+                Toast.makeText(this@LoginActivity, "Erro: $errorMessage", Toast.LENGTH_LONG).show()
             }
         }
     }
