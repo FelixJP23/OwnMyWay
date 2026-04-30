@@ -136,4 +136,15 @@ object FriendRepository {
             }
         }
     }
+
+    suspend fun getMyProfile(): UserDetail? = withContext(Dispatchers.IO) {
+        val myId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return@withContext null
+        return@withContext try {
+            SupabaseClient.client.postgrest["profiles"]
+                .select { filter { eq("id", myId) } }
+                .decodeSingle<UserDetail>()
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

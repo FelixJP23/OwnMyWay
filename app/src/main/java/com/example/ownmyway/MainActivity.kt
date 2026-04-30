@@ -43,6 +43,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.ownmyway.model.Friendship
 import com.example.ownmyway.repository.FriendRepository
+import com.bumptech.glide.Glide
+import android.widget.ImageView
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -255,9 +258,32 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         verificarPedidosPendentes()
         setupRealtimeFriendRequests()
 
-        findViewById<android.widget.ImageView>(R.id.imgProfile).setOnClickListener {
+        carregarFotoPerfil()
+
+        findViewById<android.widget.ImageView>(R.id.ivUserProfile).setOnClickListener {
             val intent = Intent(this, ProfileActivity::class.java)
             startActivity(intent)
+        }
+
+    }
+
+    private fun carregarFotoPerfil() {
+
+        val ivProfile = findViewById<ImageView>(R.id.ivUserProfile)
+
+        lifecycleScope.launch {
+            val perfil = FriendRepository.getMyProfile() // Usando a função acima
+
+            if (perfil?.avatar_url != null) {
+                Glide.with(this@MainActivity)
+                    .load(perfil.avatar_url)
+                    .placeholder(R.drawable.ic_user_placeholder) // Agora o arquivo existe!
+                    .circleCrop() // Corta a imagem em círculo antes de exibir
+                    .into(ivProfile)
+            } else {
+                // Caso o usuário não tenha URL de foto, define o placeholder fixo
+                ivProfile.setImageResource(R.drawable.ic_user_placeholder)
+            }
         }
     }
 
