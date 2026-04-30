@@ -99,7 +99,6 @@ class LoginActivity : AppCompatActivity() {
                 )
                 Toast.makeText(this@LoginActivity, "E-mail enviado! Verifique sua caixa de entrada.", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
-                // Isso vai mostrar se o erro é 'User not found' ou 'Rate limit exceeded'
                 val errorMessage = e.localizedMessage ?: "Erro desconhecido"
                 Log.e("ResetError", errorMessage)
                 Toast.makeText(this@LoginActivity, "Erro: $errorMessage", Toast.LENGTH_LONG).show()

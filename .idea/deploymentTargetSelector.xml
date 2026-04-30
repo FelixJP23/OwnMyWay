@@ -15,7 +15,7 @@
       </SelectionState>
       <SelectionState runConfigName="SplashActivity">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-04-28T12:04:49.337827500Z">
+        <DropdownSelection timestamp="2026-04-30T12:45:07.635270400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=RX8X401Z1LV" />

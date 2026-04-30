@@ -251,10 +251,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             searchNearby(listOf(PlaceCategory.RESTAURANTS))
         }
 
-        findViewById<FrameLayout>(R.id.btnGerenciarAmigos).setOnClickListener {
-            findViewById<View>(R.id.badgeNovaAmizade).visibility = View.GONE
-            startActivity(Intent(this, FriendManagerActivity::class.java))
-        }
 
         verificarPedidosPendentes()
         setupRealtimeFriendRequests()
@@ -278,7 +274,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     true
                 }
                 R.id.nav_friends -> {
-                    startActivity(Intent(this, SocialFeedActivity::class.java))
+                    atualizarBadgeAmigos(false)
+                    startActivity(Intent(this, FriendManagerActivity::class.java))
                     true
                 }
                 R.id.nav_budget -> {
@@ -301,11 +298,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val myId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return
         lifecycleScope.launch {
             try {
-                if (FriendRepository.checkPendingRequests(myId)) {
-                    findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
-                }
-            } catch (e: Exception) { Log.e("Main", "Erro badge: ${e.message}") }
+                val temPedido = FriendRepository.checkPendingRequests(myId)
+                atualizarBadgeAmigos(temPedido) // Substitui a busca por ID do XML
+            } catch (e: Exception) {
+                Log.e("Main", "Erro badge: ${e.message}")
+            }
         }
+    }
+
+    private fun atualizarBadgeAmigos(exibir: Boolean) {
+        val bottomNav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_navigation)
+        // O ID deve ser o mesmo do seu res/menu/bottom_nav_menu.xml
+        val badge = bottomNav.getOrCreateBadge(R.id.nav_friends)
+
+        badge.isVisible = exibir
+        badge.backgroundColor = Color.RED // Ou a cor do seu bg_red_badge
+        badge.badgeGravity = com.google.android.material.badge.BadgeDrawable.TOP_END
     }
 
     private fun setupRealtimeFriendRequests() {
@@ -334,19 +342,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
                         Log.d("FRIEND_DEBUG", "Novo pedido detectado para: ${newRequest.receiver_id}")
 
+                        // Se o pedido for para o usuário logado e estiver pendente
                         if (newRequest.receiver_id == myId && newRequest.status == "pending") {
                             withContext(Dispatchers.Main) {
-                                findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
+                                // Ativa a bolinha vermelha no menu inferior
+                                atualizarBadgeAmigos(true)
                                 Toast.makeText(this@MainActivity, "Novo pedido de amizade!", Toast.LENGTH_SHORT).show()
                             }
                         }
                     } catch (e: Exception) {
-                        // Se cair aqui, o problema é a classe Friendship que não bate com o Banco
                         Log.e("FRIEND_DEBUG", "Erro ao decodificar pedido: ${e.message}")
 
-                        // DICA: Como teste, force a bolinha a aparecer se qualquer coisa chegar no canal
+                        // Fallback: Se houver erro na decodificação mas algo chegou no canal,
+                        // ainda assim notificamos o usuário por precaução.
                         withContext(Dispatchers.Main) {
-                            findViewById<View>(R.id.badgeNovaAmizade).visibility = View.VISIBLE
+                            atualizarBadgeAmigos(true)
                         }
                     }
                 }
