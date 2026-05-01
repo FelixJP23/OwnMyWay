@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#F8F4FF"
     android:padding="16dp">
 
+    <!-- HEADER: Botão Voltar e Título -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,7 +21,7 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_arrow_back"
-            android:tint="#4A2080" />
+            app:tint="#4A2080" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -31,65 +33,149 @@
             android:layout_marginStart="8dp"/>
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvPedidosTitulo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Pedidos Recebidos"
-        android:textStyle="bold"
-        android:textColor="#333333"
-        android:visibility="gone"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvIncomingRequests"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"/>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#D1C4E9"
-        android:layout_marginBottom="16dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Encontrar Viajantes"
-        android:textStyle="bold"
-        android:textColor="#333333"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp">
-
-        <EditText
-            android:id="@+id/etSearchUser"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="48dp"
-            android:hint="Digite o nome..."
-            android:background="@android:color/white"
-            android:padding="12dp"
-            android:textColor="#4A2080"/>
-
-        <Button
-            android:id="@+id/btnSearch"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:text="Buscar"
-            android:backgroundTint="#4A2080"
-            android:textColor="#FFFFFF"
-            android:layout_marginStart="8dp"/>
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvSearchResults"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="16dp"/>
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- SEÇÃO 1: Pedidos Recebidos (Só aparece se houver pedidos) -->
+            <TextView
+                android:id="@+id/tvPedidosTitulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pedidos Recebidos"
+                android:textStyle="bold"
+                android:textColor="#333333"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvIncomingRequests"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"/>
+
+            <!-- SEÇÃO 2: Meus Amigos -->
+            <TextView
+                android:id="@+id/tvMyFriendsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Meus Amigos"
+                android:textStyle="bold"
+                android:textColor="#333333"
+                android:layout_marginBottom="8dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMyFriends"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:minHeight="80dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#D1C4E9"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- SEÇÃO 3: Encontrar Viajantes -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Conhecer Viajantes"
+                android:textStyle="bold"
+                android:textColor="#333333"/>
+
+            <!-- Barra de Busca Formata (Bordas Arredondadas) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <EditText
+                    android:id="@+id/etSearchUser"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="48dp"
+                    android:hint="Buscar por @usuario..."
+                    android:background="@drawable/bg_search_oval"
+                    android:padding="12dp"
+                    android:paddingStart="20dp"
+                    android:textColor="#4A2080"
+                    android:textSize="14sp"/>
+
+                <Button
+                    android:id="@+id/btnSearch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="Buscar"
+                    android:backgroundTint="#4A2080"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginStart="8dp"
+                    app:cornerRadius="24dp"/>
+            </LinearLayout>
+
+            <!-- Resultados da Busca / Exploração -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSearchResults"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:nestedScrollingEnabled="false"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- FOOTER: Carrossel de Paginação (1, 2, 3, 4) -->
+    <LinearLayout
+        android:id="@+id/layoutPagination"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingTop="8dp"
+        android:background="#F8F4FF">
+
+        <Button
+            android:id="@+id/btnPage1"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:text="1"
+            android:textColor="#4A2080"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnPage2"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:text="2"
+            android:textColor="#4A2080" />
+
+        <Button
+            android:id="@+id/btnPage3"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:text="3"
+            android:textColor="#4A2080" />
+
+        <Button
+            android:id="@+id/btnPage4"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:text="4"
+            android:textColor="#4A2080" />
+    </LinearLayout>
+
 </LinearLayout>
