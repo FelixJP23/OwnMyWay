@@ -65,7 +65,7 @@ class FriendManagerActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnPage4).setOnClickListener { loadExploreUsers(4) }
     }
 
-    // --- FUNÇÕES DE CARGA DE DADOS ---
+    // --- FUNÇÕES DE CARGA DE DADOS para correção de erro---
 
     private fun loadIncomingRequests() {
         lifecycleScope.launch {
