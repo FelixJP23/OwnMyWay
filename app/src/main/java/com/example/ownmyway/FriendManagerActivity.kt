@@ -10,9 +10,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ownmyway.model.Friendship
-import com.example.ownmyway.model.UserDetail
+import com.example.ownmyway.model.*
 import com.example.ownmyway.repository.FriendRepository
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
 class FriendManagerActivity : AppCompatActivity() {
@@ -46,16 +46,16 @@ class FriendManagerActivity : AppCompatActivity() {
         // Configuração da Busca por @Handle
         findViewById<Button>(R.id.btnSearch).setOnClickListener {
             val query = etSearchUser.text.toString().trim()
-            if (query.isNotEmpty()) performSearchByHandle(query)
+            if (query.isNotEmpty()) performSearchByUsername(query)
         }
 
-        // Configuração do Carrossel de Paginação (10 usuários por página)
+        // Configuração dos Botões de Paginação
         setupPaginationButtons()
 
         // Carga Inicial
         loadIncomingRequests()
         loadMyFriends()
-        loadExploreUsers(page = 1) // Começa na página 1 por padrão
+        loadExploreUsers(page = 1)
     }
 
     private fun setupPaginationButtons() {
@@ -65,57 +65,13 @@ class FriendManagerActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnPage4).setOnClickListener { loadExploreUsers(4) }
     }
 
-    private fun loadMyFriends() {
-        lifecycleScope.launch {
-            try {
-                // Supõe-se que você tenha essa função no Repository
-                val friends = FriendRepository.getMyFriends()
-                rvMyFriends.adapter = MyFriendsAdapter(friends)
-            } catch (e: Exception) {
-                Log.e("FriendManager", "Erro ao carregar amigos: ${e.message}")
-            }
-        }
-    }
-
-    private fun loadExploreUsers(page: Int) {
-        val pageSize = 10
-        val offset = (page - 1) * pageSize
-
-        lifecycleScope.launch {
-            try {
-                // Retira a chamada de todos e busca apenas 10 com base no offset
-                val users = FriendRepository.getUsersPaginated(limit = pageSize, offset = offset)
-                rvSearch.adapter = SearchAdapter(users, ::sendRequest)
-
-                Toast.makeText(this@FriendManagerActivity, "Página $page carregada", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Log.e("FriendManager", "Erro na paginação: ${e.message}")
-            }
-        }
-    }
-
-    private fun performSearchByHandle(query: String) {
-        lifecycleScope.launch {
-            try {
-                // Formata a query para garantir que busca pelo @
-                val handleQuery = if (query.startsWith("@")) query else "@$query"
-
-                val users = FriendRepository.searchUsersByHandle(handleQuery)
-
-                if (users.isEmpty()) {
-                    Toast.makeText(this@FriendManagerActivity, "Nenhum @handle encontrado", Toast.LENGTH_SHORT).show()
-                }
-                rvSearch.adapter = SearchAdapter(users, ::sendRequest)
-            } catch (e: Exception) {
-                Log.e("FriendManager", "Erro na busca: ${e.message}")
-            }
-        }
-    }
+    // --- FUNÇÕES DE CARGA DE DADOS ---
 
     private fun loadIncomingRequests() {
         lifecycleScope.launch {
             try {
-                val requests = FriendRepository.getIncomingRequests()
+                // Busca pedidos com detalhes (Nome e Foto) do remetente
+                val requests = FriendRepository.getIncomingRequestsWithDetails()
                 if (requests.isNotEmpty()) {
                     tvPedidosTitulo.visibility = View.VISIBLE
                     rvIncoming.visibility = View.VISIBLE
@@ -130,13 +86,60 @@ class FriendManagerActivity : AppCompatActivity() {
         }
     }
 
+    private fun loadMyFriends() {
+        lifecycleScope.launch {
+            try {
+                val friends = FriendRepository.getMyFriends()
+                rvMyFriends.adapter = MyFriendsAdapter(friends)
+            } catch (e: Exception) {
+                Log.e("FriendManager", "Erro ao carregar amigos: ${e.message}")
+            }
+        }
+    }
+
+    private fun loadExploreUsers(page: Int) {
+        val pageSize = 10
+        val offset = (page - 1) * pageSize
+
+        lifecycleScope.launch {
+            try {
+                val users = FriendRepository.getUsersPaginated(limit = pageSize, offset = offset)
+                rvSearch.adapter = SearchAdapter(users, ::sendRequest)
+                Toast.makeText(this@FriendManagerActivity, "Página $page carregada", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("FriendManager", "Erro na paginação: ${e.message}")
+            }
+        }
+    }
+
+    private fun performSearchByUsername(query: String) {
+        lifecycleScope.launch {
+            try {
+                // Remove o @ caso o usuário tenha digitado (ex: @arturzera -> arturzera)
+                val cleanQuery = query.replace("@", "").trim()
+
+                val users = FriendRepository.searchUsersByUsername(cleanQuery)
+
+                if (users.isEmpty()) {
+                    Toast.makeText(this@FriendManagerActivity, "Usuário '$cleanQuery' não encontrado", Toast.LENGTH_SHORT).show()
+                }
+
+                rvSearch.adapter = SearchAdapter(users, ::sendRequest)
+            } catch (e: Exception) {
+                Log.e("FriendManager", "Erro na busca: ${e.message}")
+            }
+        }
+    }
+
+    // --- AÇÕES DE AMIZADE ---
+
     private fun respondToRequest(senderId: String, accept: Boolean) {
         lifecycleScope.launch {
             try {
                 FriendRepository.respondToFriendRequest(senderId, accept)
                 Toast.makeText(this@FriendManagerActivity, if(accept) "Novo amigo!" else "Recusado", Toast.LENGTH_SHORT).show()
                 loadIncomingRequests()
-                loadMyFriends() // Atualiza lista de amigos se aceitou
+                loadMyFriends()
             } catch (e: Exception) {
                 Toast.makeText(this@FriendManagerActivity, "Erro ao responder", Toast.LENGTH_SHORT).show()
             }
@@ -157,7 +160,7 @@ class FriendManagerActivity : AppCompatActivity() {
 
 // --- ADAPTERS ---
 
-// 1. Adapter para busca e exploração (com botão de adicionar)
+// 1. Adapter para busca e exploração (Usa item_user.xml)
 class SearchAdapter(private val users: List<UserDetail>, private val onAddClick: (String) -> Unit) : RecyclerView.Adapter<SearchAdapter.VH>() {
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val nameText: TextView = view.findViewById(R.id.tvUserName)
@@ -169,14 +172,13 @@ class SearchAdapter(private val users: List<UserDetail>, private val onAddClick:
     }
     override fun onBindViewHolder(holder: VH, position: Int) {
         val user = users[position]
-        // Exibe o Nome e o Handle (ex: Artur (@artur123))
-        holder.nameText.text = "${user.full_name} (${user.handle ?: "@viajante"})"
+        holder.nameText.text = "${user.full_name} (${user.username ?: "@viajante"})"
         holder.addButton.setOnClickListener { onAddClick(user.id) }
     }
     override fun getItemCount() = users.size
 }
 
-// 2. Adapter para Meus Amigos (Apenas listagem)
+// 2. Adapter para Meus Amigos (Usa item_user.xml)
 class MyFriendsAdapter(private val friends: List<UserDetail>) : RecyclerView.Adapter<MyFriendsAdapter.VH>() {
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val nameText: TextView = view.findViewById(R.id.tvUserName)
@@ -189,27 +191,47 @@ class MyFriendsAdapter(private val friends: List<UserDetail>) : RecyclerView.Ada
     override fun onBindViewHolder(holder: VH, position: Int) {
         val friend = friends[position]
         holder.nameText.text = friend.full_name
-        holder.actionButton.text = "Perfil" // Muda o botão para algo que faça sentido para amigos
+        holder.actionButton.text = "Perfil"
     }
     override fun getItemCount() = friends.size
 }
 
-// 3. Adapter para Pedidos Recebidos
-class RequestAdapter(private val requests: List<Friendship>, private val onRespond: (String, Boolean) -> Unit) : RecyclerView.Adapter<RequestAdapter.VH>() {
+// 3. Adapter para Pedidos Recebidos (Usa item_pedido_recebido.xml com Foto)
+class RequestAdapter(
+    private val requests: List<IncomingRequestDetail>,
+    private val onRespond: (String, Boolean) -> Unit
+) : RecyclerView.Adapter<RequestAdapter.VH>() {
+
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val nameText: TextView = view.findViewById(R.id.tvUserName)
+        val userPhoto: ImageView = view.findViewById(R.id.ivUserPhoto)
         val btnAccept: Button = view.findViewById(R.id.btnAccept)
         val btnDecline: Button = view.findViewById(R.id.btnDecline)
     }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_pedido_recebido, parent, false)
         return VH(view)
     }
+
     override fun onBindViewHolder(holder: VH, position: Int) {
-        val req = requests[position]
-        holder.nameText.text = "Pedido de: ${req.sender_id.take(6)}..."
-        holder.btnAccept.setOnClickListener { onRespond(req.sender_id, true) }
-        holder.btnDecline.setOnClickListener { onRespond(req.sender_id, false) }
+        val item = requests[position]
+        val profile = item.senderDetail
+        val friendship = item.friendship
+
+        // Exibe o Nome
+        holder.nameText.text = profile.full_name ?: profile.username ?: "Usuário"
+
+        // Carrega foto com Glide
+        Glide.with(holder.itemView.context)
+            .load(profile.avatar_url)
+            .placeholder(R.drawable.ic_user_placeholder)
+            .circleCrop()
+            .into(holder.userPhoto)
+
+        holder.btnAccept.setOnClickListener { onRespond(friendship.sender_id, true) }
+        holder.btnDecline.setOnClickListener { onRespond(friendship.sender_id, false) }
     }
+
     override fun getItemCount() = requests.size
 }

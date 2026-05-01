@@ -8,5 +8,5 @@ data class UserDetail(
     val full_name: String? = null,
     val email: String? = null,
     val avatar_url: String? = null,
-    val handle: String? = null
+    val username: String? = null
 )
