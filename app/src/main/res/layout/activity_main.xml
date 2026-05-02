@@ -16,7 +16,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Search Bar -->
+    <!-- Scrim — fecha o speed dial ao tocar -->
+    <View
+        android:id="@+id/fabScrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:alpha="0"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Top row: search bar + weather -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardSearch"
         android:layout_width="0dp"
@@ -25,27 +38,27 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="8dp"
         app:cardCornerRadius="28dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#CCFFFFFF"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="@android:color/white"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/cardWeather">
+        app:layout_constraintEnd_toStartOf="@id/cardWeather">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingHorizontal="12dp">
+            android:paddingHorizontal="8dp">
 
             <ImageButton
                 android:id="@+id/btnFilter"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_search"
-                app:tint="#4A2080"
-                android:contentDescription="Search"/>
+                android:src="@android:drawable/ic_menu_sort_by_size"
+                android:tint="#4A2080"
+                android:contentDescription="Filter"/>
 
             <TextView
                 android:id="@+id/tvSearch"
@@ -54,32 +67,26 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:paddingHorizontal="8dp"
-                android:text="Para onde vamos?"
-                android:textColor="#4A2080"
-                android:textStyle="bold"
-                android:textSize="14sp"
+                android:text="Buscar um lugar..."
+                android:textColor="#AAAAAA"
+                android:textSize="15sp"
                 android:background="?attr/selectableItemBackground"
                 android:focusable="true"
                 android:clickable="true"/>
 
-            <!-- MUDANÇA AQUI: De ImageView para ShapeableImageView -->
-            <com.google.android.material.imageview.ShapeableImageView
+            <ImageView
                 android:id="@+id/ivUserProfile"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginEnd="4dp"
-                android:padding="2dp"
+                android:src="@drawable/default_profile"
                 android:scaleType="centerCrop"
-                android:src="@android:drawable/ic_menu_myplaces"
-                app:strokeColor="#4A2080"
-                app:strokeWidth="2dp"
-                app:shapeAppearanceOverlay="@style/CircleImageView"
                 android:contentDescription="Profile"/>
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Weather Card -->
+    <!-- Weather card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardWeather"
         android:layout_width="wrap_content"
@@ -87,8 +94,8 @@
         android:layout_marginTop="48dp"
         android:layout_marginEnd="16dp"
         app:cardCornerRadius="28dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#CCFFFFFF"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="@android:color/white"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -97,88 +104,215 @@
             android:layout_height="match_parent"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="14dp">
 
             <ImageView
                 android:id="@+id/ivWeatherIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_report_image"
-                android:tint="#4A2080" />
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginEnd="6dp"/>
 
-            <TextView
-                android:id="@+id/tvTemperature"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="25°C"
-                android:textColor="#4A2080"
-                android:textStyle="bold"
-                android:textSize="14sp" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvWeatherCondition"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="Limpo"
-                android:textColor="#884A2080"
-                android:textSize="11sp" />
+                <TextView
+                    android:id="@+id/tvTemperature"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--°C"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"/>
+
+                <TextView
+                    android:id="@+id/tvWeatherCondition"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="..."
+                    android:textColor="#888888"
+                    android:textSize="10sp"/>
+
+            </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        app:itemIconTint="#4A2080"
-        app:itemTextColor="#4A2080"
-        app:menu="@menu/bottom_nav_menu"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- FAB Add (above bottom nav) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAdd"
+    <!-- Cost counter chip -->
+    <TextView
+        android:id="@+id/tvCostCounter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="24dp"
-        android:layout_marginBottom="16dp"
-        android:backgroundTint="#4A2080"
-        android:src="@android:drawable/ic_input_add"
-        app:tint="@android:color/white"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_cost_chip"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
+        android:textColor="#D4B8F0"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-medium"
+        android:visibility="gone"
+        android:elevation="6dp"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"/>
 
-    <!-- FAB Camera (above fabAdd) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabCamera"
+    <!-- ══ SPEED DIAL ITEMS ══ -->
+
+    <!-- Item 3: Gerenciar rotas -->
+    <LinearLayout
+        android:id="@+id/fabItemManage"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="#4A2080"
-        android:src="@android:drawable/ic_menu_camera"
-        app:tint="@android:color/white"
-        app:layout_constraintBottom_toTopOf="@id/fabAdd"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="202dp"
+        android:alpha="0"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation">
 
-    <!-- FAB Offline Map (above fabCamera) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gerenciar rotas"
+            android:textColor="#4A2080"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:background="@drawable/bg_fab_label"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="10dp"
+            android:elevation="4dp"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabManageRoutes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#4A2080"
+            app:fabSize="mini"
+            app:tint="@android:color/white"
+            android:src="@drawable/ic_map_outlined"
+            android:contentDescription="Gerenciar rotas"/>
+    </LinearLayout>
+
+    <!-- Item 2: Assistente de viagem -->
+    <LinearLayout
+        android:id="@+id/fabItemCamera"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="142dp"
+        android:alpha="0"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Assistente de viagem"
+            android:textColor="#4A2080"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:background="@drawable/bg_fab_label"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="10dp"
+            android:elevation="4dp"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabCameraItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#4A2080"
+            app:fabSize="mini"
+            app:tint="@android:color/white"
+            android:src="@android:drawable/ic_menu_camera"
+            android:contentDescription="Assistente de viagem"/>
+    </LinearLayout>
+
+    <!-- Item 1: Criar rota -->
+    <LinearLayout
+        android:id="@+id/fabItemRoute"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="82dp"
+        android:alpha="0"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Criar rota"
+            android:textColor="#4A2080"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:background="@drawable/bg_fab_label"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="10dp"
+            android:elevation="4dp"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabRouteItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#4A2080"
+            app:fabSize="mini"
+            app:tint="@android:color/white"
+            android:src="@drawable/ic_route_add"
+            android:contentDescription="Criar rota"/>
+    </LinearLayout>
+
+    <!-- FAB Offline -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabOffline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="#4A2080"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="#2D1060"
         android:src="@android:drawable/ic_menu_save"
         android:visibility="gone"
         app:tint="@android:color/white"
-        app:layout_constraintBottom_toTopOf="@id/fabCamera"
+        app:fabSize="mini"
+        android:contentDescription="Mapa offline"
+        app:layout_constraintBottom_toTopOf="@id/fabMenu"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- FAB Menu principal ≡ -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="#4A2080"
+        android:src="@drawable/ic_menu_lines"
+        app:tint="@android:color/white"
+        android:contentDescription="Menu"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Bottom navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/omw_purple_main"
+        app:itemTextColor="@color/omw_purple_main"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

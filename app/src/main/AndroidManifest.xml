@@ -113,6 +113,11 @@
                 <data android:scheme="ownmyway" android:host="reset-password" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ManageRoutesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar"/>
+
     </application>
 
 </manifest>
