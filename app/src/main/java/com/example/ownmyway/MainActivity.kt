@@ -651,6 +651,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
         travelPromptHandler.postDelayed(travelPromptRunnable!!, travelPromptDelayMs)
+        Log.d("TravelPrompt", "scheduled in ${travelPromptDelayMs}ms for key=${currentTravelPromptKey()}")
+    }
+
+    private fun currentTravelPromptKey(): String {
+        // O controle do pop-up precisa ser por usuário, não por instalação.
+        // Assim, se trocar de conta, uma conta nova não fica presa no cooldown da conta anterior.
+        val userId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: "guest"
+        return "${KEY_TRAVEL_PROMPT_LAST_SHOWN}_$userId"
     }
 
     private fun shouldScheduleTravelPrompt(): Boolean {
@@ -658,8 +666,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         if (lastRouteStops.isNotEmpty() || routePolyline != null) return false
         if (travelPromptDialog?.isShowing == true) return false
 
-        val lastShown = travelPromptPrefs.getLong(KEY_TRAVEL_PROMPT_LAST_SHOWN, 0L)
-        return System.currentTimeMillis() - lastShown >= travelPromptCooldownMs
+        val lastShown = travelPromptPrefs.getLong(currentTravelPromptKey(), 0L)
+        val canShow = System.currentTimeMillis() - lastShown >= travelPromptCooldownMs
+
+        Log.d(
+            "TravelPrompt",
+            "canShow=$canShow lastShown=$lastShown key=${currentTravelPromptKey()} routeStops=${lastRouteStops.size} hasPolyline=${routePolyline != null}"
+        )
+
+        return canShow
     }
 
     private fun cancelTravelPromptWatcher() {
@@ -669,7 +684,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun markTravelPromptShown() {
         travelPromptPrefs.edit()
-            .putLong(KEY_TRAVEL_PROMPT_LAST_SHOWN, System.currentTimeMillis())
+            .putLong(currentTravelPromptKey(), System.currentTimeMillis())
+            // Remove a chave antiga global, usada na primeira versão do recurso.
+            // Isso evita que restauração/reinstalação do app carregue cooldown velho para outra conta.
+            .remove(KEY_TRAVEL_PROMPT_LAST_SHOWN)
             .apply()
     }
 
