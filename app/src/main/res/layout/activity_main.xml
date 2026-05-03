@@ -60,19 +60,21 @@
                 android:tint="#4A2080"
                 android:contentDescription="Filter"/>
 
-            <TextView
+            <EditText
                 android:id="@+id/tvSearch"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:background="@android:color/transparent"
                 android:gravity="center_vertical"
+                android:hint="Buscar um lugar..."
+                android:imeOptions="actionSearch"
+                android:inputType="text"
                 android:paddingHorizontal="8dp"
-                android:text="Buscar um lugar..."
-                android:textColor="#AAAAAA"
-                android:textSize="15sp"
-                android:background="?attr/selectableItemBackground"
-                android:focusable="true"
-                android:clickable="true"/>
+                android:singleLine="true"
+                android:textColor="#3E3848"
+                android:textColorHint="#AAAAAA"
+                android:textSize="15sp" />
 
             <ImageView
                 android:id="@+id/ivUserProfile"
@@ -138,7 +140,68 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- Sugestões da busca integrada -->
+    <LinearLayout
+        android:id="@+id/searchSuggestionsPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_search_dropdown"
+        android:clipToOutline="true"
+        android:elevation="10dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/cardSearch"
+        app:layout_constraintStart_toStartOf="@id/cardSearch"
+        app:layout_constraintTop_toBottomOf="@id/cardSearch">
+
+        <LinearLayout
+            android:id="@+id/rowDestinationSuggestion"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="🧭"
+                android:textSize="20sp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:text="Procurando seu próximo destino?"
+                android:textColor="#4A2080"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ver"
+                android:textColor="#9B5DE5"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/predictionsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </LinearLayout>
+
     <!-- Cost counter chip -->
+
     <TextView
         android:id="@+id/tvCostCounter"
         android:layout_width="wrap_content"

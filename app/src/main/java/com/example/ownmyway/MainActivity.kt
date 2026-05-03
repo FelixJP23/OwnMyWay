@@ -1,14 +1,19 @@
 package com.example.ownmyway
 
 import android.Manifest
+import android.content.Context
 import android.app.Activity
+import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.view.Window
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.Button
@@ -45,8 +50,26 @@ import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import org.json.JSONArray
 import org.json.JSONObject
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.Gravity
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.view.WindowManager
+import android.widget.EditText
+import android.widget.LinearLayout
+import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
+import java.net.URLEncoder
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+
+    companion object {
+        const val EXTRA_RECOMMENDED_MAP_QUERY = "extra_recommended_map_query"
+        const val EXTRA_RECOMMENDED_MAP_TITLE = "extra_recommended_map_title"
+        private const val KEY_TRAVEL_PROMPT_LAST_SHOWN = "last_shown"
+    }
 
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -83,6 +106,26 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var fabItemCamera: View
     private lateinit var fabItemManage: View
     private var isFabMenuOpen = false
+
+    // ── Busca integrada ───────────────────────────────────────────────────
+    private lateinit var searchInput: EditText
+    private lateinit var searchSuggestionsPanel: LinearLayout
+    private lateinit var rowDestinationSuggestion: View
+    private lateinit var predictionsContainer: LinearLayout
+    private var autocompleteSearchJob: Job? = null
+    private var pendingRecommendedMapQuery: String? = null
+    private var pendingRecommendedMapTitle: String? = null
+
+    // ── Sugestão de destinos ──────────────────────────────────────────────
+    private val travelPromptHandler = Handler(Looper.getMainLooper())
+    private var travelPromptRunnable: Runnable? = null
+    private var travelPromptDialog: Dialog? = null
+    private val travelPromptDelayMs = 90_000L       // aparece após 1min30 sem rota
+    private val travelPromptCooldownMs = 24 * 60 * 60 * 1000L // reaparece só depois de 24h
+
+    private val travelPromptPrefs by lazy {
+        getSharedPreferences("travel_prompt_prefs", MODE_PRIVATE)
+    }
 
     val mapsApiKey: String by lazy {
         packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
@@ -180,6 +223,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                         lastRouteId        = System.currentTimeMillis().toString()
                         lastRouteTotalCost = routeResult.totalEstimatedCost
                         fabOffline.visibility = View.VISIBLE
+                        cancelTravelPromptWatcher()
                         showCostCounter(routeResult.totalEstimatedCost)
                     } else {
                         fabOffline.visibility = View.GONE
@@ -206,6 +250,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         fabItemRoute       = findViewById(R.id.fabItemRoute)
         fabItemCamera      = findViewById(R.id.fabItemCamera)
         fabItemManage      = findViewById(R.id.fabItemManage)
+        searchInput        = findViewById(R.id.tvSearch)
+        searchSuggestionsPanel = findViewById(R.id.searchSuggestionsPanel)
+        rowDestinationSuggestion = findViewById(R.id.rowDestinationSuggestion)
+        predictionsContainer = findViewById(R.id.predictionsContainer)
 
         setupBottomNavigation()
         MealNotificationReceiver.createChannel(this)
@@ -216,21 +264,28 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         (supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment).getMapAsync(this)
 
-        // Search bar
-        findViewById<TextView>(R.id.tvSearch).setOnClickListener { openAutocomplete() }
+        // Search bar integrada
+        setupIntegratedSearchBar()
         findViewById<ImageButton>(R.id.btnFilter).setOnClickListener {
+            hideSearchSuggestions()
             if (isFabMenuOpen) closeFabMenu()
             FilterBottomSheet().show(supportFragmentManager, "filter")
         }
 
         // Speed dial
         fabMenu.setOnClickListener { toggleFabMenu() }
-        fabScrim.setOnClickListener { closeFabMenu() }
+        fabScrim.setOnClickListener {
+            hideSearchSuggestions()
+            closeFabMenu()
+        }
 
         // Handle back gesture: close speed dial first if open
         onBackPressedDispatcher.addCallback(this) {
-            if (isFabMenuOpen) closeFabMenu()
-            else isEnabled = false  // let system handle it
+            when {
+                searchSuggestionsPanel.visibility == View.VISIBLE -> hideSearchSuggestions()
+                isFabMenuOpen -> closeFabMenu()
+                else -> isEnabled = false  // let system handle it
+            }
         }
 
         findViewById<FloatingActionButton>(R.id.fabRouteItem).setOnClickListener {
@@ -291,12 +346,388 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         findViewById<ImageView>(R.id.ivUserProfile).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
+
+        setupTravelPromptWatcher()
+        captureRecommendedDestinationIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        captureRecommendedDestinationIntent(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setupTravelPromptWatcher()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        hideSearchSuggestions(clearFocus = false)
+        cancelTravelPromptWatcher()
+    }
+
+    // ── Busca integrada + sugestão de destino ───────────────────────────────
+    private fun setupIntegratedSearchBar() {
+        rowDestinationSuggestion.setOnClickListener {
+            hideKeyboard()
+            hideSearchSuggestions()
+            startActivity(Intent(this, CountryRecommendationsActivity::class.java))
+        }
+
+        searchInput.setOnClickListener {
+            showDestinationSuggestionIfEmpty()
+        }
+
+        searchInput.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) showDestinationSuggestionIfEmpty()
+            else hideSearchSuggestions(clearFocus = false)
+        }
+
+        searchInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                val query = searchInput.text.toString().trim()
+                if (query.isNotBlank()) {
+                    hideKeyboard()
+                    hideSearchSuggestions(clearFocus = false)
+                    searchTextOnIntegratedMap(query, query)
+                }
+                true
+            } else {
+                false
+            }
+        }
+
+        searchInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun afterTextChanged(s: Editable?) = Unit
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (!searchInput.hasFocus()) return
+                val query = s?.toString()?.trim().orEmpty()
+
+                if (query.isBlank()) {
+                    autocompleteSearchJob?.cancel()
+                    predictionsContainer.removeAllViews()
+                    showDestinationSuggestionIfEmpty()
+                } else {
+                    rowDestinationSuggestion.visibility = View.GONE
+                    searchSuggestionsPanel.visibility = View.VISIBLE
+                    fetchSearchPredictions(query)
+                }
+            }
+        })
+    }
+
+    private fun showDestinationSuggestionIfEmpty() {
+        if (searchInput.text.toString().trim().isNotEmpty()) return
+        predictionsContainer.removeAllViews()
+        rowDestinationSuggestion.visibility = View.VISIBLE
+        searchSuggestionsPanel.visibility = View.VISIBLE
+    }
+
+    private fun hideSearchSuggestions(clearFocus: Boolean = true) {
+        autocompleteSearchJob?.cancel()
+        autocompleteSearchJob = null
+        predictionsContainer.removeAllViews()
+        searchSuggestionsPanel.visibility = View.GONE
+        if (clearFocus) searchInput.clearFocus()
+    }
+
+    private fun fetchSearchPredictions(query: String) {
+        autocompleteSearchJob?.cancel()
+        autocompleteSearchJob = lifecycleScope.launch {
+            delay(250)
+            val request = FindAutocompletePredictionsRequest.builder()
+                .setQuery(query)
+                .build()
+
+            placesClient.findAutocompletePredictions(request)
+                .addOnSuccessListener { response ->
+                    if (searchInput.text.toString().trim() != query) return@addOnSuccessListener
+                    renderPlacePredictions(response.autocompletePredictions.take(5))
+                }
+                .addOnFailureListener {
+                    predictionsContainer.removeAllViews()
+                }
+        }
+    }
+
+    private fun renderPlacePredictions(predictions: List<AutocompletePrediction>) {
+        predictionsContainer.removeAllViews()
+        rowDestinationSuggestion.visibility = View.GONE
+
+        predictions.forEach { prediction ->
+            predictionsContainer.addView(createPredictionRow(prediction))
+        }
+    }
+
+    private fun createPredictionRow(prediction: AutocompletePrediction): View {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            minimumHeight = dp(56)
+            setPadding(dp(16), 0, dp(16), 0)
+            isClickable = true
+            isFocusable = true
+            foreground = selectableItemBackground()
+        }
+
+        val icon = TextView(this).apply {
+            text = "📍"
+            textSize = 20f
+        }
+        row.addView(icon, LinearLayout.LayoutParams(dp(32), LinearLayout.LayoutParams.WRAP_CONTENT))
+
+        val textBox = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+
+        val primary = TextView(this).apply {
+            text = prediction.getPrimaryText(null).toString()
+            setTextColor(Color.parseColor("#2D1060"))
+            textSize = 14f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            maxLines = 1
+        }
+
+        val secondary = TextView(this).apply {
+            text = prediction.getSecondaryText(null).toString()
+            setTextColor(Color.parseColor("#7A6B8F"))
+            textSize = 12f
+            maxLines = 1
+        }
+
+        textBox.addView(primary)
+        textBox.addView(secondary)
+        row.addView(textBox, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+
+        row.setOnClickListener {
+            openPredictionOnIntegratedMap(prediction.placeId)
+        }
+
+        return row
+    }
+
+    private fun openPredictionOnIntegratedMap(placeId: String) {
+        hideKeyboard()
+        hideSearchSuggestions()
+
+        val fields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
+        val request = FetchPlaceRequest.newInstance(placeId, fields)
+
+        placesClient.fetchPlace(request)
+            .addOnSuccessListener { response ->
+                val place = response.place
+                val latLng = place.latLng ?: return@addOnSuccessListener
+                searchInput.setText(place.name ?: "")
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                fetchAndShowPlaceDetail(place.id ?: placeId, place.name ?: "", latLng)
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Não foi possível abrir esse lugar no mapa.", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun captureRecommendedDestinationIntent(intent: Intent?) {
+        val query = intent?.getStringExtra(EXTRA_RECOMMENDED_MAP_QUERY)?.takeIf { it.isNotBlank() }
+            ?: return
+
+        pendingRecommendedMapQuery = query
+        pendingRecommendedMapTitle = intent.getStringExtra(EXTRA_RECOMMENDED_MAP_TITLE) ?: query
+        intent.removeExtra(EXTRA_RECOMMENDED_MAP_QUERY)
+        intent.removeExtra(EXTRA_RECOMMENDED_MAP_TITLE)
+        handlePendingRecommendedDestinationSearch()
+    }
+
+    private fun handlePendingRecommendedDestinationSearch() {
+        if (!::map.isInitialized) return
+        val query = pendingRecommendedMapQuery ?: return
+        val title = pendingRecommendedMapTitle ?: query
+        pendingRecommendedMapQuery = null
+        pendingRecommendedMapTitle = null
+        searchTextOnIntegratedMap(query, title)
+    }
+
+    private fun searchTextOnIntegratedMap(query: String, title: String) {
+        if (!::map.isInitialized) {
+            pendingRecommendedMapQuery = query
+            pendingRecommendedMapTitle = title
+            return
+        }
+
+        hideKeyboard()
+        hideSearchSuggestions()
+        cancelTravelPromptWatcher()
+        Toast.makeText(this, "Abrindo $title no mapa...", Toast.LENGTH_SHORT).show()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val encodedQuery = URLEncoder.encode(query, "UTF-8")
+                val url = "https://maps.googleapis.com/maps/api/place/textsearch/json" +
+                    "?query=$encodedQuery&key=$mapsApiKey"
+
+                val body = okHttpClient.newCall(
+                    okhttp3.Request.Builder().url(url).build()
+                ).execute().body?.string() ?: return@launch
+
+                val response = gson.fromJson(body, NearbySearchResponse::class.java)
+                val places = response?.results.orEmpty().take(10)
+
+                withContext(Dispatchers.Main) {
+                    routePolyline?.remove()
+                    routePolyline = null
+                    placeMarkers.forEach { it.remove() }
+                    placeMarkers.clear()
+                    markerPlaceMap.clear()
+                    lastRouteStops = emptyList()
+                    lastRouteId = ""
+                    lastRouteTotalCost = 0
+                    fabOffline.visibility = View.GONE
+                    tvCostCounter.visibility = View.GONE
+
+                    if (places.isEmpty()) {
+                        Toast.makeText(this@MainActivity, "Não encontrei resultados para $title.", Toast.LENGTH_SHORT).show()
+                        setupTravelPromptWatcher()
+                        return@withContext
+                    }
+
+                    places.forEach { place ->
+                        val latLng = LatLng(place.geometry.location.lat, place.geometry.location.lng)
+                        val marker = map.addMarker(
+                            MarkerOptions()
+                                .position(latLng)
+                                .title(place.name)
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET))
+                        ) ?: return@forEach
+                        placeMarkers.add(marker)
+                        markerPlaceMap[marker.id] = place
+                    }
+
+                    val bounds = placeMarkers.fold(LatLngBounds.builder()) { builder, marker ->
+                        builder.include(marker.position)
+                    }.build()
+                    map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120))
+                    Toast.makeText(this@MainActivity, "$title aberto no mapa integrado", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Integrated map search error", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "Erro ao abrir $title no mapa.", Toast.LENGTH_SHORT).show()
+                    setupTravelPromptWatcher()
+                }
+            }
+        }
+    }
+
+    private fun hideKeyboard() {
+        val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(searchInput.windowToken, 0)
+    }
+
+    private fun selectableItemBackground(): android.graphics.drawable.Drawable? {
+        val attrs = intArrayOf(android.R.attr.selectableItemBackground)
+        val typedArray = obtainStyledAttributes(attrs)
+        val drawable = typedArray.getDrawable(0)
+        typedArray.recycle()
+        return drawable
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
+    // ── Pop-up inteligente de recomendações ────────────────────────────────
+    private fun setupTravelPromptWatcher() {
+        cancelTravelPromptWatcher()
+
+        if (!shouldScheduleTravelPrompt()) return
+
+        travelPromptRunnable = Runnable {
+            when {
+                !shouldScheduleTravelPrompt() -> Unit
+                isFabMenuOpen -> setupTravelPromptWatcher()
+                else -> showTravelRecommendationPrompt()
+            }
+        }
+        travelPromptHandler.postDelayed(travelPromptRunnable!!, travelPromptDelayMs)
+        Log.d("TravelPrompt", "scheduled in ${travelPromptDelayMs}ms for key=${currentTravelPromptKey()}")
+    }
+
+    private fun currentTravelPromptKey(): String {
+        // O controle do pop-up precisa ser por usuário, não por instalação.
+        // Assim, se trocar de conta, uma conta nova não fica presa no cooldown da conta anterior.
+        val userId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: "guest"
+        return "${KEY_TRAVEL_PROMPT_LAST_SHOWN}_$userId"
+    }
+
+    private fun shouldScheduleTravelPrompt(): Boolean {
+        if (isFinishing || isDestroyed) return false
+        if (lastRouteStops.isNotEmpty() || routePolyline != null) return false
+        if (travelPromptDialog?.isShowing == true) return false
+
+        val lastShown = travelPromptPrefs.getLong(currentTravelPromptKey(), 0L)
+        val canShow = System.currentTimeMillis() - lastShown >= travelPromptCooldownMs
+
+        Log.d(
+            "TravelPrompt",
+            "canShow=$canShow lastShown=$lastShown key=${currentTravelPromptKey()} routeStops=${lastRouteStops.size} hasPolyline=${routePolyline != null}"
+        )
+
+        return canShow
+    }
+
+    private fun cancelTravelPromptWatcher() {
+        travelPromptRunnable?.let { travelPromptHandler.removeCallbacks(it) }
+        travelPromptRunnable = null
+    }
+
+    private fun markTravelPromptShown() {
+        travelPromptPrefs.edit()
+            .putLong(currentTravelPromptKey(), System.currentTimeMillis())
+            // Remove a chave antiga global, usada na primeira versão do recurso.
+            // Isso evita que restauração/reinstalação do app carregue cooldown velho para outra conta.
+            .remove(KEY_TRAVEL_PROMPT_LAST_SHOWN)
+            .apply()
+    }
+
+    private fun showTravelRecommendationPrompt() {
+        if (travelPromptDialog?.isShowing == true) return
+
+        markTravelPromptShown()
+
+        val dialog = Dialog(this)
+        travelPromptDialog = dialog
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_travel_recommendation_prompt)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.setCanceledOnTouchOutside(true)
+
+        dialog.findViewById<Button>(R.id.btnTravelPromptPrimary).setOnClickListener {
+            dialog.dismiss()
+            startActivity(Intent(this, CountryRecommendationsActivity::class.java))
+        }
+
+        dialog.findViewById<TextView>(R.id.btnTravelPromptSecondary).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.setOnDismissListener {
+            travelPromptDialog = null
+        }
+
+        dialog.show()
+        dialog.window?.apply {
+            setLayout((resources.displayMetrics.widthPixels * 0.88f).toInt(), WindowManager.LayoutParams.WRAP_CONTENT)
+            setGravity(Gravity.CENTER)
+        }
     }
 
     // ── Speed dial ────────────────────────────────────────────────────────
     private fun toggleFabMenu() { if (isFabMenuOpen) closeFabMenu() else openFabMenu() }
 
     private fun openFabMenu() {
+        hideSearchSuggestions()
         fabOffline.visibility = View.GONE
         isFabMenuOpen = true
         fabMenu.animate().rotation(90f).setDuration(250).setInterpolator(OvershootInterpolator()).start()
@@ -428,9 +859,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         map.uiSettings.isZoomControlsEnabled     = false
         map.uiSettings.isMyLocationButtonEnabled = false
 
-        map.setOnMapClickListener { if (isFabMenuOpen) closeFabMenu() }
+        map.setOnMapClickListener {
+            hideSearchSuggestions()
+            if (isFabMenuOpen) closeFabMenu()
+        }
 
         map.setOnMarkerClickListener { marker ->
+            hideSearchSuggestions()
             if (isFabMenuOpen) { closeFabMenu(); return@setOnMarkerClickListener true }
             val place = markerPlaceMap[marker.id] ?: return@setOnMarkerClickListener false
             PlaceDetailBottomSheet.newInstance(
@@ -447,6 +882,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             true
         }
         requestLocationPermission()
+        handlePendingRecommendedDestinationSearch()
     }
 
     // ── Location ──────────────────────────────────────────────────────────
@@ -613,6 +1049,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     routePolyline?.remove()
                     routePolyline = map.addPolyline(PolylineOptions()
                         .addAll(decodePolyline(points)).color(Color.parseColor("#4A2080")).width(12f).geodesic(true))
+                    cancelTravelPromptWatcher()
                     map.animateCamera(CameraUpdateFactory.newLatLngBounds(
                         LatLngBounds.builder().include(origin).include(destination).build(), 120))
                     Toast.makeText(this@MainActivity, "Route to $placeName", Toast.LENGTH_SHORT).show()
@@ -681,6 +1118,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         lastRouteStops = stops
         lastRouteId    = System.currentTimeMillis().toString()
         fabOffline.visibility = View.VISIBLE
+        cancelTravelPromptWatcher()
 
         // Draw purple polyline through all stops via Directions API
         if (stops.size >= 2) {
@@ -756,7 +1194,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
     override fun onDestroy() {
+        cancelTravelPromptWatcher()
+        autocompleteSearchJob?.cancel()
+        travelPromptDialog?.dismiss()
+        travelPromptDialog = null
         super.onDestroy()
         if (::locationCallback.isInitialized) fusedLocationClient.removeLocationUpdates(locationCallback)
     }
+
 }
