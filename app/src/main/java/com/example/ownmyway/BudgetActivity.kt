@@ -37,6 +37,7 @@ class BudgetActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         toolbar.setNavigationOnClickListener { finish() }
+        AppBottomNavigation.setup(this, R.id.nav_budget)
 
         tvBalance = findViewById(R.id.tvTotalBalance)
         etAmount = findViewById(R.id.etAmount)

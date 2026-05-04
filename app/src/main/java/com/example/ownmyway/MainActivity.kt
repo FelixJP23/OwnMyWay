@@ -63,6 +63,7 @@ import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import java.net.URLEncoder
+import java.util.Calendar
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         const val EXTRA_RECOMMENDED_MAP_QUERY = "extra_recommended_map_query"
         const val EXTRA_RECOMMENDED_MAP_TITLE = "extra_recommended_map_title"
         private const val KEY_TRAVEL_PROMPT_LAST_SHOWN = "last_shown"
+        private var greetingShownThisSession = false
     }
 
     private lateinit var map: GoogleMap
@@ -115,12 +117,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var searchSuggestionsPanel: LinearLayout
     private lateinit var rowDestinationSuggestion: View
     private lateinit var predictionsContainer: LinearLayout
+    private lateinit var cardGreetingOverlay: View
+    private lateinit var tvMainGreeting: TextView
     private var autocompleteSearchJob: Job? = null
     private var pendingRecommendedMapQuery: String? = null
     private var pendingRecommendedMapTitle: String? = null
 
     // ── Sugestão de destinos ──────────────────────────────────────────────
     private val travelPromptHandler = Handler(Looper.getMainLooper())
+    private val mainGreetingHandler = Handler(Looper.getMainLooper())
     private var travelPromptRunnable: Runnable? = null
     private var travelPromptDialog: Dialog? = null
     private val travelPromptDelayMs = 90_000L       // aparece após 1min30 sem rota
@@ -286,6 +291,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         searchSuggestionsPanel = findViewById(R.id.searchSuggestionsPanel)
         rowDestinationSuggestion = findViewById(R.id.rowDestinationSuggestion)
         predictionsContainer = findViewById(R.id.predictionsContainer)
+        cardGreetingOverlay = findViewById(R.id.cardGreetingOverlay)
+        tvMainGreeting = findViewById(R.id.tvMainGreeting)
 
         setupBottomNavigation()
         MealNotificationReceiver.createChannel(this)
@@ -374,6 +381,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         verificarPedidosPendentes()
         setupRealtimeFriendRequests()
         carregarFotoPerfil()
+        showMainGreetingIfNeeded()
 
         findViewById<ImageView>(R.id.ivUserProfile).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
@@ -805,26 +813,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     // ── Bottom navigation ─────────────────────────────────────────────────
     private fun setupBottomNavigation() {
-        val bottomNav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_navigation)
-        bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    currentLatLng?.let { map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 15f)) }
-                        ?: Toast.makeText(this, "Localização ainda não disponível", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                R.id.nav_friends -> {
-                    atualizarBadgeAmigos(false)
-                    startActivity(Intent(this, FriendManagerActivity::class.java))
-                    true
-                }
-                R.id.nav_budget -> {
-                    startActivity(Intent(this, BudgetActivity::class.java))
-                    true
-                }
-                else -> false
+        AppBottomNavigation.setup(
+            activity = this,
+            selectedItemId = R.id.nav_home,
+            onHomeSelected = {
+                currentLatLng?.let { map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 15f)) }
+                    ?: Toast.makeText(this, "Localização ainda não disponível", Toast.LENGTH_SHORT).show()
+            },
+            onFriendsSelected = {
+                atualizarBadgeAmigos(false)
             }
-        }
+        )
     }
 
     private fun carregarFotoPerfil() {
@@ -838,6 +837,79 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 ivProfile.setImageResource(R.drawable.ic_user_placeholder)
             }
         }
+    }
+
+    private fun showMainGreetingIfNeeded() {
+        if (greetingShownThisSession) return
+        greetingShownThisSession = true
+
+        lifecycleScope.launch {
+            val firstName = getGreetingUserName()
+            tvMainGreeting.text = buildGreetingMessage(firstName)
+            animateMainGreeting()
+        }
+    }
+
+    private suspend fun getGreetingUserName(): String {
+        val profile = FriendRepository.getMyProfile()
+
+        val rawName = profile?.full_name
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?: profile?.username
+                ?.trim()
+                ?.removePrefix("@")
+                ?.takeIf { it.isNotBlank() }
+
+        return rawName
+            ?.split(Regex("\\s+"))
+            ?.firstOrNull()
+            ?.replaceFirstChar { char ->
+                if (char.isLowerCase()) char.titlecase() else char.toString()
+            }
+            ?: "Viajante"
+    }
+
+    private fun buildGreetingMessage(firstName: String): String {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return when (hour) {
+            in 5..11 -> "Bom dia, $firstName! Pronto pra explorar?"
+            in 12..17 -> "Boa tarde, $firstName! Bora descobrir um novo lugar?"
+            else -> "Boa noite, $firstName! Planejando a próxima aventura?"
+        }
+    }
+
+    private fun animateMainGreeting() {
+        cardGreetingOverlay.apply {
+            mainGreetingHandler.removeCallbacksAndMessages(null)
+            alpha = 0f
+            translationY = -dp(18).toFloat()
+            scaleX = 0.96f
+            scaleY = 0.96f
+            visibility = View.VISIBLE
+            animate()
+                .alpha(1f)
+                .translationY(0f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(480)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
+
+        mainGreetingHandler.postDelayed({
+            cardGreetingOverlay.animate()
+                .alpha(0f)
+                .translationY(-dp(14).toFloat())
+                .scaleX(0.98f)
+                .scaleY(0.98f)
+                .setDuration(420)
+                .setInterpolator(DecelerateInterpolator())
+                .withEndAction {
+                    cardGreetingOverlay.visibility = View.GONE
+                }
+                .start()
+        }, 4_000L)
     }
 
     private fun verificarPedidosPendentes() {
@@ -1229,6 +1301,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onDestroy() {
         cancelTravelPromptWatcher()
+        mainGreetingHandler.removeCallbacksAndMessages(null)
         autocompleteSearchJob?.cancel()
         travelPromptDialog?.dismiss()
         travelPromptDialog = null
