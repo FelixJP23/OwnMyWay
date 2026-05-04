@@ -140,6 +140,37 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- Saudação breve da primeira abertura da Main -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardGreetingOverlay"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="20dp"
+        android:alpha="0"
+        android:visibility="gone"
+        app:cardBackgroundColor="#FDFBFF"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardSearch">
+
+        <TextView
+            android:id="@+id/tvMainGreeting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingStart="18dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="14dp"
+            android:textColor="#3A176D"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium" />
+    </androidx.cardview.widget.CardView>
+
     <!-- Sugestões da busca integrada -->
     <LinearLayout
         android:id="@+id/searchSuggestionsPanel"

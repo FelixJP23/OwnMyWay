@@ -28,6 +28,8 @@ class FriendManagerActivity : AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_friend_manager)
 
+        AppBottomNavigation.setup(this, R.id.nav_friends)
+
         // Inicialização de Views
         rvIncoming = findViewById(R.id.rvIncomingRequests)
         rvMyFriends = findViewById(R.id.rvMyFriends)
