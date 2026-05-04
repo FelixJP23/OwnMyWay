@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
@@ -51,6 +52,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var tvTemperature: TextView
     private lateinit var tvWeatherCondition: TextView
     private lateinit var ivWeatherIcon: android.widget.ImageView
+    private var currentWeatherCode: Int = -1
+    private var currentCondition: String = ""
 
     // ── Last built route (for offline download) ───────────────────────────
     private var lastRouteStops: List<NearbyPlace> = emptyList()
@@ -161,6 +164,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                         lastRouteStops = routeResult.stops
                         lastRouteId    = System.currentTimeMillis().toString()
                         fabOffline.visibility = View.VISIBLE
+                        checkWeatherRouteInteraction(hobbies)
                     } else {
                         fabOffline.visibility = View.GONE
                         Toast.makeText(
@@ -172,6 +176,34 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         }
+    }
+
+    private fun checkWeatherRouteInteraction(hobbies: List<String>) {
+        if (currentWeatherCode == -1) return
+
+        val isAdventure = hobbies.any { 
+            val h = it.lowercase()
+            h.contains("hiking") || h.contains("trekking") || 
+            h.contains("running") || h.contains("cycling") ||
+            h.contains("exploring") || h.contains("swimming")
+        }
+
+        val isRainy = currentWeatherCode in listOf(51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99)
+        val isSunny = currentWeatherCode == 0 || currentWeatherCode == 1
+
+        if (isAdventure && isRainy) {
+            showWeatherAlert("Cuidado! Previsão de chuva, isso pode deixar aventuras mais perigosas.")
+        } else if (isSunny) {
+            showWeatherAlert("Dia ensolarado! Ótimo tempo para aproveitar sua viagem!")
+        }
+    }
+
+    private fun showWeatherAlert(message: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Alerta de Viagem")
+            .setMessage(message)
+            .setPositiveButton("Entendido", null)
+            .show()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -340,6 +372,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 val code = current.getInt("weather_code")
 
                 withContext(Dispatchers.Main) {
+                    currentWeatherCode = code
                     tvTemperature.text = "${temp.toInt()}°C"
                     updateWeatherUI(code)
                 }
@@ -365,6 +398,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         ivWeatherIcon.setImageResource(iconRes)
         ivWeatherIcon.setColorFilter(Color.parseColor("#4A2080"))
         tvWeatherCondition.text = condition
+        currentCondition = condition
     }
 
     private fun openAutocomplete() {
