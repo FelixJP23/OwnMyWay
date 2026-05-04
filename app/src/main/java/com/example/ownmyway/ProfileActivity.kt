@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -17,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.ownmyway.network.UserProfile
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -33,9 +33,8 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var etName: EditText
     private lateinit var etUsername: EditText
     private lateinit var etBio: EditText
-    private lateinit var sectionLastDestination: View
-    private lateinit var tvLastDestinationValue: TextView
-    private lateinit var btnEditLastDestination: TextView
+    private lateinit var etVisitedPlaces: EditText
+    private lateinit var etWantToVisit: EditText
     private lateinit var chipGroupStyles: ChipGroup
     private lateinit var btnAddStyle: Button
     private lateinit var radioGroupBudget: RadioGroup
@@ -48,12 +47,17 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var radioPaceFast: RadioButton
     private lateinit var btnSaveIdentity: Button
     private lateinit var btnCancel: TextView
+    private lateinit var btnLogoutProfile: Button
 
     private var currentUserId: String? = null
     private var currentAvatarUrl: String? = null
     private var currentPreferredTransport: String? = null
     private var selectedImageUri: Uri? = null
     private val selectedStyles = mutableListOf<String>()
+
+    private val localProfilePrefs by lazy {
+        getSharedPreferences("profile_local_fields", MODE_PRIVATE)
+    }
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -68,6 +72,7 @@ class ProfileActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
         setContentView(R.layout.activity_profile)
 
         bindViews()
@@ -81,9 +86,8 @@ class ProfileActivity : AppCompatActivity() {
         etName = findViewById(R.id.etName)
         etUsername = findViewById(R.id.etUsername)
         etBio = findViewById(R.id.etBio)
-        sectionLastDestination = findViewById(R.id.sectionLastDestination)
-        tvLastDestinationValue = findViewById(R.id.tvLastDestinationValue)
-        btnEditLastDestination = findViewById(R.id.btnEditLastDestination)
+        etVisitedPlaces = findViewById(R.id.etVisitedPlaces)
+        etWantToVisit = findViewById(R.id.etWantToVisit)
         chipGroupStyles = findViewById(R.id.chipGroupStyles)
         btnAddStyle = findViewById(R.id.btnAddStyle)
         radioGroupBudget = findViewById(R.id.radioGroupBudget)
@@ -96,14 +100,15 @@ class ProfileActivity : AppCompatActivity() {
         radioPaceFast = findViewById(R.id.radioPaceFast)
         btnSaveIdentity = findViewById(R.id.btnSaveIdentity)
         btnCancel = findViewById(R.id.btnCancel)
+        btnLogoutProfile = findViewById(R.id.btnLogoutProfile)
     }
 
     private fun setupListeners() {
         btnEditPhoto.setOnClickListener { openGallery() }
         btnAddStyle.setOnClickListener { showAddStyleDialog() }
-        btnEditLastDestination.setOnClickListener { showEditLastDestinationDialog() }
         btnSaveIdentity.setOnClickListener { saveProfile() }
         btnCancel.setOnClickListener { finish() }
+        btnLogoutProfile.setOnClickListener { performLogout() }
     }
 
     private fun loadProfile() {
@@ -133,9 +138,13 @@ class ProfileActivity : AppCompatActivity() {
                 currentAvatarUrl = profile.avatar_url
                 currentPreferredTransport = profile.preferred_transport
 
+                loadAvatarIntoView(currentAvatarUrl)
+
                 etName.setText(profile.full_name.orEmpty())
                 etUsername.setText(profile.username.orEmpty())
                 etBio.setText(profile.bio.orEmpty())
+
+                loadLocalTravelTexts(user.id)
 
                 selectedStyles.clear()
                 selectedStyles.addAll(profile.interests ?: emptyList())
@@ -151,15 +160,6 @@ class ProfileActivity : AppCompatActivity() {
                     "relaxed" -> radioPaceRelaxed.isChecked = true
                     "moderate" -> radioPaceModerate.isChecked = true
                     "fast" -> radioPaceFast.isChecked = true
-                }
-
-                val lastDestination = profile.last_destination?.trim().orEmpty()
-                if (lastDestination.isNotBlank()) {
-                    sectionLastDestination.visibility = View.VISIBLE
-                    tvLastDestinationValue.text = lastDestination
-                } else {
-                    sectionLastDestination.visibility = View.GONE
-                    tvLastDestinationValue.text = ""
                 }
 
             } catch (e: Exception) {
@@ -181,12 +181,8 @@ class ProfileActivity : AppCompatActivity() {
         val fullName = etName.text.toString().trim()
         val username = etUsername.text.toString().trim().removePrefix("@").lowercase()
         val bio = etBio.text.toString().trim()
-
-        val lastDestination = if (sectionLastDestination.visibility == View.VISIBLE) {
-            tvLastDestinationValue.text.toString().trim().ifBlank { null }
-        } else {
-            null
-        }
+        val visitedPlaces = etVisitedPlaces.text.toString().trim()
+        val wantToVisit = etWantToVisit.text.toString().trim()
 
         val budgetLevel = when (radioGroupBudget.checkedRadioButtonId) {
             R.id.radioBudgetLow -> "low"
@@ -218,6 +214,7 @@ class ProfileActivity : AppCompatActivity() {
             try {
                 val uploadedAvatarUrl = uploadAvatarIfNeeded(userId)
                 val finalAvatarUrl = uploadedAvatarUrl ?: currentAvatarUrl
+                currentAvatarUrl = finalAvatarUrl
 
                 SupabaseClient.client.postgrest["profiles"].update(
                     {
@@ -230,11 +227,18 @@ class ProfileActivity : AppCompatActivity() {
                         set("avatar_url", finalAvatarUrl)
                         set("username", username)
                         set("bio", bio.ifBlank { null })
-                        set("last_destination", lastDestination)
                     }
                 ) {
                     filter { eq("id", userId) }
                 }
+
+                saveLocalTravelTexts(
+                    userId = userId,
+                    visitedPlaces = visitedPlaces,
+                    wantToVisit = wantToVisit
+                )
+
+                selectedImageUri = null
 
                 Toast.makeText(
                     this@ProfileActivity,
@@ -258,6 +262,48 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
+    private fun performLogout() {
+        AlertDialog.Builder(this)
+            .setTitle("Sair da conta")
+            .setMessage("Tem certeza que deseja sair da sua conta?")
+            .setPositiveButton("Sair") { _, _ ->
+                lifecycleScope.launch {
+                    try {
+                        SupabaseClient.client.auth.signOut()
+                        val intent = Intent(this@ProfileActivity, SplashActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                        startActivity(intent)
+                        finish()
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            this@ProfileActivity,
+                            "Erro ao sair da conta",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun loadLocalTravelTexts(userId: String) {
+        etVisitedPlaces.setText(localProfilePrefs.getString("visited_places_$userId", "").orEmpty())
+        etWantToVisit.setText(localProfilePrefs.getString("want_to_visit_$userId", "").orEmpty())
+    }
+
+    private fun saveLocalTravelTexts(
+        userId: String,
+        visitedPlaces: String,
+        wantToVisit: String
+    ) {
+        localProfilePrefs.edit()
+            .putString("visited_places_$userId", visitedPlaces)
+            .putString("want_to_visit_$userId", wantToVisit)
+            .apply()
+    }
+
     private suspend fun uploadAvatarIfNeeded(userId: String): String? {
         val uri = selectedImageUri ?: return null
         val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
@@ -268,6 +314,20 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         return SupabaseClient.client.storage.from("avatars").publicUrl(path)
+    }
+
+    private fun loadAvatarIntoView(avatarUrl: String?) {
+        if (avatarUrl.isNullOrBlank()) {
+            ivProfile.setImageResource(R.drawable.default_profile)
+            return
+        }
+
+        Glide.with(this)
+            .load(avatarUrl)
+            .placeholder(R.drawable.default_profile)
+            .error(R.drawable.default_profile)
+            .centerCrop()
+            .into(ivProfile)
     }
 
     private fun renderStyleChips() {
@@ -309,39 +369,6 @@ class ProfileActivity : AppCompatActivity() {
                     selectedStyles.add(value)
                     renderStyleChips()
                 }
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    private fun showEditLastDestinationDialog() {
-        val input = EditText(this).apply {
-            hint = "Ex: Quioto, Japão"
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
-
-            if (sectionLastDestination.visibility == View.VISIBLE) {
-                setText(tvLastDestinationValue.text.toString())
-                setSelection(text.length)
-            }
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("Último destino")
-            .setView(input)
-            .setPositiveButton("Salvar") { _, _ ->
-                val value = input.text.toString().trim()
-
-                if (value.isBlank()) {
-                    sectionLastDestination.visibility = View.GONE
-                    tvLastDestinationValue.text = ""
-                } else {
-                    sectionLastDestination.visibility = View.VISIBLE
-                    tvLastDestinationValue.text = value
-                }
-            }
-            .setNeutralButton("Remover") { _, _ ->
-                sectionLastDestination.visibility = View.GONE
-                tvLastDestinationValue.text = ""
             }
             .setNegativeButton("Cancelar", null)
             .show()

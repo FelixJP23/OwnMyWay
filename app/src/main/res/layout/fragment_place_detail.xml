@@ -7,22 +7,17 @@
     android:orientation="vertical"
     android:background="@android:color/white">
 
-    <!-- Drag handle -->
     <View
-        android:layout_width="40dp"
-        android:layout_height="4dp"
+        android:layout_width="40dp" android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="12dp" android:layout_marginBottom="8dp"
         android:background="#CCCCCC"/>
 
-    <!-- Photo Carousel -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPagerPhotos"
         android:layout_width="match_parent"
         android:layout_height="220dp"/>
 
-    <!-- Dot indicators -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabIndicator"
         android:layout_width="wrap_content"
@@ -31,14 +26,10 @@
         app:tabBackground="@drawable/bg_dot_selector"
         app:tabGravity="center"
         app:tabIndicatorHeight="0dp"
-        app:tabMaxWidth="16dp"
-        app:tabMinWidth="16dp"
-        app:tabPaddingStart="4dp"
-        app:tabPaddingEnd="4dp"
-        app:tabSelectedTextColor="#4A2080"
-        app:tabTextColor="#CCCCCC"/>
+        app:tabMaxWidth="16dp" app:tabMinWidth="16dp"
+        app:tabPaddingStart="4dp" app:tabPaddingEnd="4dp"
+        app:tabSelectedTextColor="#4A2080" app:tabTextColor="#CCCCCC"/>
 
-    <!-- Place info -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -47,7 +38,6 @@
         android:paddingTop="16dp"
         android:paddingBottom="32dp">
 
-        <!-- Name -->
         <TextView
             android:id="@+id/tvPlaceName"
             android:layout_width="match_parent"
@@ -58,16 +48,51 @@
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium"/>
 
-        <!-- Rating -->
         <TextView
             android:id="@+id/tvRating"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="6dp"
+            android:layout_marginBottom="8dp"
             android:textColor="#555555"
             android:textSize="14sp"/>
 
-        <!-- Address -->
+        <!-- Estimated cost row — NEW -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💰"
+                android:textSize="13sp"
+                android:layout_marginEnd="6dp"/>
+
+            <TextView
+                android:id="@+id/tvEstimatedCost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#4A2080"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:id="@+id/tvPriceTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_category_badge"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:textColor="#7B3FBE"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-medium"/>
+
+        </LinearLayout>
+
         <TextView
             android:id="@+id/tvAddress"
             android:layout_width="match_parent"
@@ -77,7 +102,6 @@
             android:textSize="14sp"
             android:lineSpacingExtra="2dp"/>
 
-        <!-- Open status -->
         <TextView
             android:id="@+id/tvOpenStatus"
             android:layout_width="wrap_content"
@@ -86,20 +110,16 @@
             android:textSize="13sp"
             android:textStyle="bold"/>
 
-        <!-- Divider -->
         <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginBottom="20dp"
-            android:background="#F0F0F0"/>
+            android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginBottom="20dp" android:background="#F0F0F0"/>
 
-        <!-- Take me button -->
         <Button
             android:id="@+id/btnTakeMe"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:backgroundTint="#4A2080"
-            android:text="Take me to it →"
+            android:text="Ir até lá →"
             android:textColor="@android:color/white"
             android:textSize="16sp"
             android:fontFamily="sans-serif-medium"
