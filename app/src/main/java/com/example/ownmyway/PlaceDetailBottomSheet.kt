@@ -21,7 +21,9 @@ class PlaceDetailBottomSheet : BottomSheetDialogFragment() {
             isOpen: Boolean?,
             photoUrls: ArrayList<String>,
             lat: Double,
-            lng: Double
+            lng: Double,
+            estimatedCost: String = "R$ ~60",
+            priceTag: String = "$$"
         ) = PlaceDetailBottomSheet().apply {
             arguments = Bundle().apply {
                 putString("name", name)
@@ -30,6 +32,8 @@ class PlaceDetailBottomSheet : BottomSheetDialogFragment() {
                 putDouble("lat", lat)
                 putDouble("lng", lng)
                 putStringArrayList("photoUrls", photoUrls)
+                putString("estimatedCost", estimatedCost)
+                putString("priceTag", priceTag)
                 if (isOpen != null) putBoolean("isOpen", isOpen)
             }
         }
@@ -43,13 +47,15 @@ class PlaceDetailBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         val args = arguments ?: return
 
-        val name      = args.getString("name", "")
-        val rating    = args.getDouble("rating", 0.0)
-        val address   = args.getString("address", "")
-        val isOpen    = if (args.containsKey("isOpen")) args.getBoolean("isOpen") else null
-        val photoUrls = args.getStringArrayList("photoUrls") ?: arrayListOf()
-        val lat       = args.getDouble("lat")
-        val lng       = args.getDouble("lng")
+        val name          = args.getString("name", "")
+        val rating        = args.getDouble("rating", 0.0)
+        val address       = args.getString("address", "")
+        val isOpen        = if (args.containsKey("isOpen")) args.getBoolean("isOpen") else null
+        val photoUrls     = args.getStringArrayList("photoUrls") ?: arrayListOf()
+        val lat           = args.getDouble("lat")
+        val lng           = args.getDouble("lng")
+        val estimatedCost = args.getString("estimatedCost", "R$ ~60")
+        val priceTag      = args.getString("priceTag", "$$")
 
         val viewPager    = view.findViewById<ViewPager2>(R.id.viewPagerPhotos)
         val tabIndicator = view.findViewById<TabLayout>(R.id.tabIndicator)
@@ -67,6 +73,10 @@ class PlaceDetailBottomSheet : BottomSheetDialogFragment() {
         view.findViewById<TextView>(R.id.tvPlaceName).text = name
         view.findViewById<TextView>(R.id.tvRating).text =
             if (rating > 0) "⭐ ${"%.1f".format(rating)}" else "No ratings yet"
+
+        view.findViewById<TextView>(R.id.tvEstimatedCost).text = estimatedCost
+        view.findViewById<TextView>(R.id.tvPriceTag).text = priceTag
+
         view.findViewById<TextView>(R.id.tvAddress).text =
             if (address.isNotBlank()) "📍 $address" else ""
 
@@ -80,9 +90,7 @@ class PlaceDetailBottomSheet : BottomSheetDialogFragment() {
 
         view.findViewById<Button>(R.id.btnTakeMe).setOnClickListener {
             val bundle = Bundle().apply {
-                putDouble("lat", lat)
-                putDouble("lng", lng)
-                putString("name", name)
+                putDouble("lat", lat); putDouble("lng", lng); putString("name", name)
             }
             parentFragmentManager.setFragmentResult("route_request", bundle)
             dismiss()

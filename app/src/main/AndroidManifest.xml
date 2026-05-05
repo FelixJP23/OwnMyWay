@@ -31,6 +31,11 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
+
+        <activity
+            android:name=".CountryRecommendationsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar"/>
         <activity
             android:name=".CreateRouteActivity"
             android:exported="false"
@@ -104,6 +109,20 @@
         <activity
             android:name=".FriendManagerActivity"
             android:exported="false" />
+
+        <activity android:name=".UpdatePasswordActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="ownmyway" android:host="reset-password" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ManageRoutesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar"/>
+
     </application>
 
 </manifest>

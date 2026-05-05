@@ -7,6 +7,7 @@ import com.google.android.gms.maps.model.PolylineOptions
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.json.JSONObject
@@ -14,7 +15,8 @@ import org.json.JSONObject
 data class RouteResult(
     val stops: List<NearbyPlace>,
     val polylineOptions: PolylineOptions?,
-    val waypointOrder: List<Int> = emptyList()
+    val waypointOrder: List<Int> = emptyList(),
+    val totalEstimatedCost: Int = 0
 )
 
 class RouteAlgorithm(
@@ -23,125 +25,148 @@ class RouteAlgorithm(
     private val gson: Gson = Gson()
 ) {
 
-    suspend fun buildRoute(
-        origin: LatLng,
-        preferences: RoutePreferences
-    ): RouteResult = withContext(Dispatchers.IO) {
+    suspend fun buildRoute(origin: LatLng, preferences: RoutePreferences): RouteResult =
+        withContext(Dispatchers.IO) {
 
-        val placeWeights = HobbyData.getPlaceWeights(preferences.selectedHobbies)
-
-        // 1 ── Mandatory stops come FIRST, always included regardless of scoring
+        val placeWeights   = HobbyData.getPlaceWeights(preferences.selectedHobbies)
         val mandatoryStops = preferences.mandatoryStops.toMutableList()
-
-        // 2 ── How many hobby-based stops to fill remaining slots
         val remainingSlots = (preferences.stopCount - mandatoryStops.size).coerceAtLeast(1)
 
-        // 3 ── Fetch and score hobby-based candidates
+        // 1 ── Fetch candidates in parallel
         val candidatesByType = placeWeights.keys.map { type ->
             async { fetchNearby(origin, type) }
-        }.flatMap { it.await() }
+        }.awaitAll().flatten()
 
         val mandatoryIds = mandatoryStops.map { it.place_id }.toSet()
 
         val hobbyStops = candidatesByType
             .distinctBy { it.place_id }
-            .filter { it.place_id !in mandatoryIds } // don't duplicate mandatory stops
+            .filter { it.place_id !in mandatoryIds }
             .map { place ->
-                val typeWeight = placeWeights.values.maxOrNull() ?: 1.0
-                val ratingScore = (place.rating ?: 3.0)
-                val totalScore = ratingScore * typeWeight
-                place to totalScore
+                val typeWeight  = placeWeights.values.maxOrNull() ?: 1.0
+                val ratingScore = place.rating ?: 3.0
+                val priceScore  = if (preferences.isLowSpender && (place.price_level ?: 2) > 2) 0.5 else 1.0
+                place to (ratingScore * typeWeight * priceScore)
             }
             .sortedByDescending { it.second }
             .take(remainingSlots)
             .map { it.first }
             .toMutableList()
 
-        // 4 ── Final ordered list: mandatory first, then hobby-based
         val allStops = (mandatoryStops + hobbyStops).toMutableList()
 
-        // 5 ── If no hotel breakfast → café is ALWAYS the very first stop,
-        //      even before mandatory places (breakfast comes before anything else)
+        // 2 ── Café first if no hotel breakfast
         if (!preferences.hotelBreakfast) {
             val cafe = fetchNearby(origin, "cafe").firstOrNull()
-            val alreadyIncluded = allStops.any { it.place_id == cafe?.place_id }
-            if (cafe != null && !alreadyIncluded) {
+            if (cafe != null && allStops.none { it.place_id == cafe.place_id }) {
                 allStops.add(0, cafe)
             }
         }
 
         if (allStops.isEmpty()) return@withContext RouteResult(emptyList(), null)
 
-        // 6 ── Build optimized Directions API request
-        val destination = allStops.last()
-        val waypoints   = allStops.dropLast(1)
+        // 3 ── Enrich each stop with Place Details to get real price_level + types
+        val enrichedStops = enrichWithDetails(allStops)
 
-        val waypointsParam = if (waypoints.isNotEmpty()) {
+        // 4 ── Total cost with real data
+        val totalEstimatedCost = enrichedStops.sumOf { it.estimatedCostBRL }
+        Log.d("RouteAlgorithm", "Stops: ${enrichedStops.map { "${it.name}=${it.estimatedCostLabel}" }}")
+        Log.d("RouteAlgorithm", "Total: R$$totalEstimatedCost")
+
+        // 5 ── Directions API
+        val destination    = enrichedStops.last()
+        val waypoints      = enrichedStops.dropLast(1)
+        val waypointsParam = if (waypoints.isNotEmpty())
             "optimize:true|" + waypoints.joinToString("|") {
                 "${it.geometry.location.lat},${it.geometry.location.lng}"
-            }
-        } else ""
+            } else ""
 
-        val destParam = "${destination.geometry.location.lat},${destination.geometry.location.lng}"
         val url = buildString {
             append("https://maps.googleapis.com/maps/api/directions/json")
             append("?origin=${origin.latitude},${origin.longitude}")
-            append("&destination=$destParam")
+            append("&destination=${destination.geometry.location.lat},${destination.geometry.location.lng}")
             if (waypointsParam.isNotEmpty()) append("&waypoints=$waypointsParam")
             append("&key=$mapsApiKey")
         }
 
         return@withContext try {
-            val body = okHttpClient.newCall(
-                okhttp3.Request.Builder().url(url).build()
-            ).execute().body?.string() ?: return@withContext RouteResult(allStops, null)
-
+            val body   = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
+                .execute().body?.string()
+                ?: return@withContext RouteResult(enrichedStops, null, totalEstimatedCost = totalEstimatedCost)
             val json   = JSONObject(body)
             val routes = json.getJSONArray("routes")
-            if (routes.length() == 0) return@withContext RouteResult(allStops, null)
+            if (routes.length() == 0)
+                return@withContext RouteResult(enrichedStops, null, totalEstimatedCost = totalEstimatedCost)
 
-            val route = routes.getJSONObject(0)
-
-            // Re-order hobby stops by optimised waypoint_order
-            // Mandatory stops keep their original order (they are first)
+            val route          = routes.getJSONObject(0)
             val optimizedOrder = route.optJSONArray("waypoint_order")
-            val orderedStops = if (optimizedOrder != null && waypoints.isNotEmpty()) {
+            val orderedStops   = if (optimizedOrder != null && waypoints.isNotEmpty()) {
                 val order     = (0 until optimizedOrder.length()).map { optimizedOrder.getInt(it) }
                 val reordered = order.map { waypoints[it] }.toMutableList()
                 reordered.add(destination)
                 reordered
-            } else allStops
-
-            val points = route
-                .getJSONObject("overview_polyline")
-                .getString("points")
+            } else enrichedStops
 
             val polyline = PolylineOptions()
-                .addAll(decodePolyline(points))
-                .color(Color.parseColor("#4A2080"))
-                .width(12f)
-                .geodesic(true)
+                .addAll(decodePolyline(route.getJSONObject("overview_polyline").getString("points")))
+                .color(Color.parseColor("#4A2080")).width(12f).geodesic(true)
 
-            RouteResult(orderedStops, polyline)
+            RouteResult(orderedStops, polyline, totalEstimatedCost = orderedStops.sumOf { it.estimatedCostBRL })
         } catch (e: Exception) {
-            Log.e("RouteAlgorithm", "Directions API error", e)
-            RouteResult(allStops, null)
+            Log.e("RouteAlgorithm", "Directions error", e)
+            RouteResult(enrichedStops, null, totalEstimatedCost = totalEstimatedCost)
         }
     }
+
+    /**
+     * Fetches Place Details for each stop (in batches of 5) to get
+     * real price_level and types. Falls back to original on any error.
+     */
+    private suspend fun enrichWithDetails(stops: List<NearbyPlace>): List<NearbyPlace> =
+        withContext(Dispatchers.IO) {
+            stops.chunked(5).flatMap { chunk ->
+                chunk.map { place ->
+                    async {
+                        try {
+                            val url  = "https://maps.googleapis.com/maps/api/place/details/json" +
+                                "?place_id=${place.place_id}" +
+                                "&fields=price_level,types,opening_hours,rating,photos" +
+                                "&key=$mapsApiKey"
+                            val body = okHttpClient.newCall(
+                                okhttp3.Request.Builder().url(url).build()
+                            ).execute().body?.string()
+
+                            val result = body?.let {
+                                gson.fromJson(it, PlaceDetailsResponse::class.java).result
+                            }
+
+                            if (result != null) {
+                                place.copy(
+                                    price_level   = result.price_level   ?: place.price_level,
+                                    types         = result.types         ?: place.types,
+                                    rating        = result.rating        ?: place.rating,
+                                    opening_hours = result.opening_hours ?: place.opening_hours
+                                )
+                            } else place
+                        } catch (e: Exception) {
+                            Log.w("RouteAlgorithm", "Detail fetch failed for ${place.name}: ${e.message}")
+                            place
+                        }
+                    }
+                }.awaitAll()
+            }
+        }
 
     private suspend fun fetchNearby(center: LatLng, type: String): List<NearbyPlace> =
         withContext(Dispatchers.IO) {
             try {
-                val url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
-                    "?location=${center.latitude},${center.longitude}" +
-                    "&radius=5000&type=$type&key=$mapsApiKey"
-                val body = okHttpClient.newCall(
-                    okhttp3.Request.Builder().url(url).build()
-                ).execute().body?.string() ?: return@withContext emptyList()
+                val url  = "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
+                    "?location=${center.latitude},${center.longitude}&radius=5000&type=$type&key=$mapsApiKey"
+                val body = okHttpClient.newCall(okhttp3.Request.Builder().url(url).build())
+                    .execute().body?.string() ?: return@withContext emptyList()
                 gson.fromJson(body, NearbySearchResponse::class.java).results ?: emptyList()
             } catch (e: Exception) {
-                Log.e("RouteAlgorithm", "Nearby $type error", e)
-                emptyList()
+                Log.e("RouteAlgorithm", "Nearby $type error", e); emptyList()
             }
         }
 
@@ -151,8 +176,7 @@ class RouteAlgorithm(
         while (index < encoded.length) {
             var b: Int; var shift = 0; var res = 0
             do { b = encoded[index++].code - 63; res = res or (b and 0x1f shl shift); shift += 5 } while (b >= 0x20)
-            lat += if (res and 1 != 0) (res shr 1).inv() else res shr 1
-            shift = 0; res = 0
+            lat += if (res and 1 != 0) (res shr 1).inv() else res shr 1; shift = 0; res = 0
             do { b = encoded[index++].code - 63; res = res or (b and 0x1f shl shift); shift += 5 } while (b >= 0x20)
             lng += if (res and 1 != 0) (res shr 1).inv() else res shr 1
             result.add(LatLng(lat / 1E5, lng / 1E5))

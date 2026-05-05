@@ -16,7 +16,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Search Bar -->
+    <!-- Scrim — fecha o speed dial ao tocar -->
+    <View
+        android:id="@+id/fabScrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:alpha="0"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Top row: search bar + weather -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardSearch"
         android:layout_width="0dp"
@@ -25,57 +38,57 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="8dp"
         app:cardCornerRadius="28dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#CCFFFFFF"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="@android:color/white"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/cardWeather">
+        app:layout_constraintEnd_toStartOf="@id/cardWeather">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingHorizontal="12dp">
+            android:paddingHorizontal="8dp">
 
             <ImageButton
                 android:id="@+id/btnFilter"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_search"
-                app:tint="#4A2080"
-                android:contentDescription="Search"/>
+                android:src="@android:drawable/ic_menu_sort_by_size"
+                android:tint="#4A2080"
+                android:contentDescription="Filter"/>
 
-            <TextView
+            <EditText
                 android:id="@+id/tvSearch"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:background="@android:color/transparent"
                 android:gravity="center_vertical"
+                android:hint="Buscar um lugar..."
+                android:imeOptions="actionSearch"
+                android:inputType="text"
                 android:paddingHorizontal="8dp"
-                android:text="Para onde vamos?"
-                android:textColor="#4A2080"
-                android:textStyle="bold"
-                android:textSize="14sp"
-                android:background="?attr/selectableItemBackground"
-                android:focusable="true"
-                android:clickable="true"/>
+                android:singleLine="true"
+                android:textColor="#3E3848"
+                android:textColorHint="#AAAAAA"
+                android:textSize="15sp" />
 
             <ImageView
-                android:id="@+id/imgProfile"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:id="@+id/ivUserProfile"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_marginEnd="4dp"
-                android:background="@drawable/profile_photo_bg"
-                android:src="@android:drawable/ic_menu_myplaces"
+                android:src="@drawable/default_profile"
                 android:scaleType="centerCrop"
                 android:contentDescription="Profile"/>
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Weather Card -->
+    <!-- Weather card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardWeather"
         android:layout_width="wrap_content"
@@ -83,8 +96,8 @@
         android:layout_marginTop="48dp"
         android:layout_marginEnd="16dp"
         app:cardCornerRadius="28dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#CCFFFFFF"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="@android:color/white"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -93,119 +106,307 @@
             android:layout_height="match_parent"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="14dp">
 
             <ImageView
                 android:id="@+id/ivWeatherIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_report_image"
-                android:tint="#4A2080" />
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginEnd="6dp"/>
 
-            <TextView
-                android:id="@+id/tvTemperature"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="25°C"
-                android:textColor="#4A2080"
-                android:textStyle="bold"
-                android:textSize="14sp" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvWeatherCondition"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="Limpo"
-                android:textColor="#884A2080"
-                android:textSize="11sp" />
+                <TextView
+                    android:id="@+id/tvTemperature"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--°C"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"/>
+
+                <TextView
+                    android:id="@+id/tvWeatherCondition"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="..."
+                    android:textColor="#888888"
+                    android:textSize="10sp"/>
+
+            </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Botton Friendship -->
-    <FrameLayout
-        android:id="@+id/btnGerenciarAmigos"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="12dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:elevation="6dp"
-        android:background="@drawable/bg_purple_circle"
-        app:layout_constraintBottom_toTopOf="@id/fabCamera"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_people"
-            app:tint="@android:color/white" />
-
-        <View
-            android:id="@+id/badgeNovaAmizade"
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="10dp"
-            android:background="@drawable/bg_red_badge"
-            android:visibility="gone" />
-    </FrameLayout>
-
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
+    <!-- Saudação breve da primeira abertura da Main -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardGreetingOverlay"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        app:itemIconTint="#4A2080"
-        app:itemTextColor="#4A2080"
-        app:menu="@menu/bottom_nav_menu"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="20dp"
+        android:alpha="0"
+        android:visibility="gone"
+        app:cardBackgroundColor="#FDFBFF"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/cardSearch">
 
-    <!-- FAB Add (above bottom nav) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAdd"
+        <TextView
+            android:id="@+id/tvMainGreeting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingStart="18dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="14dp"
+            android:textColor="#3A176D"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Sugestões da busca integrada -->
+    <LinearLayout
+        android:id="@+id/searchSuggestionsPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_search_dropdown"
+        android:clipToOutline="true"
+        android:elevation="10dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/cardSearch"
+        app:layout_constraintStart_toStartOf="@id/cardSearch"
+        app:layout_constraintTop_toBottomOf="@id/cardSearch">
+
+        <LinearLayout
+            android:id="@+id/rowDestinationSuggestion"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="🧭"
+                android:textSize="20sp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:text="Procurando seu próximo destino?"
+                android:textColor="#4A2080"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ver"
+                android:textColor="#9B5DE5"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/predictionsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </LinearLayout>
+
+    <!-- Cost counter chip -->
+
+    <TextView
+        android:id="@+id/tvCostCounter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="24dp"
-        android:layout_marginBottom="16dp"
-        android:backgroundTint="#4A2080"
-        android:src="@android:drawable/ic_input_add"
-        app:tint="@android:color/white"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_cost_chip"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
+        android:textColor="#D4B8F0"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-medium"
+        android:visibility="gone"
+        android:elevation="6dp"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"/>
 
-    <!-- FAB Camera (above fabAdd) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabCamera"
+    <!-- ══ SPEED DIAL ITEMS ══ -->
+
+    <!-- Item 3: Gerenciar rotas -->
+    <LinearLayout
+        android:id="@+id/fabItemManage"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="#4A2080"
-        android:src="@android:drawable/ic_menu_camera"
-        app:tint="@android:color/white"
-        app:layout_constraintBottom_toTopOf="@id/fabAdd"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="202dp"
+        android:alpha="0"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation">
 
-    <!-- FAB Offline Map (above fabCamera) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gerenciar rotas"
+            android:textColor="#4A2080"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:background="@drawable/bg_fab_label"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="10dp"
+            android:elevation="4dp"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabManageRoutes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#4A2080"
+            app:fabSize="mini"
+            app:tint="@android:color/white"
+            android:src="@drawable/ic_map_outlined"
+            android:contentDescription="Gerenciar rotas"/>
+    </LinearLayout>
+
+    <!-- Item 2: Assistente de viagem -->
+    <LinearLayout
+        android:id="@+id/fabItemCamera"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="142dp"
+        android:alpha="0"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Assistente de viagem"
+            android:textColor="#4A2080"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:background="@drawable/bg_fab_label"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="10dp"
+            android:elevation="4dp"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabCameraItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#4A2080"
+            app:fabSize="mini"
+            app:tint="@android:color/white"
+            android:src="@android:drawable/ic_menu_camera"
+            android:contentDescription="Assistente de viagem"/>
+    </LinearLayout>
+
+    <!-- Item 1: Criar rota -->
+    <LinearLayout
+        android:id="@+id/fabItemRoute"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="82dp"
+        android:alpha="0"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Criar rota"
+            android:textColor="#4A2080"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:background="@drawable/bg_fab_label"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="10dp"
+            android:elevation="4dp"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabRouteItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#4A2080"
+            app:fabSize="mini"
+            app:tint="@android:color/white"
+            android:src="@drawable/ic_route_add"
+            android:contentDescription="Criar rota"/>
+    </LinearLayout>
+
+    <!-- FAB Offline -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabOffline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="#4A2080"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="#2D1060"
         android:src="@android:drawable/ic_menu_save"
         android:visibility="gone"
         app:tint="@android:color/white"
-        app:layout_constraintBottom_toTopOf="@id/fabCamera"
+        app:fabSize="mini"
+        android:contentDescription="Mapa offline"
+        app:layout_constraintBottom_toTopOf="@id/fabMenu"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- FAB Menu principal ≡ -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="#4A2080"
+        android:src="@drawable/ic_menu_lines"
+        app:tint="@android:color/white"
+        android:contentDescription="Menu"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Bottom navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/omw_purple_main"
+        app:itemTextColor="@color/omw_purple_main"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
