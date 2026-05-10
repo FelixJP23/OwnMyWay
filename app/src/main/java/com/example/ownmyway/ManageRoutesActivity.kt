@@ -25,6 +25,9 @@ class ManageRoutesActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var btnSaveCurrent: View
 
+    private var userPlan: String = PLAN_BASIC
+    private var savedRoutesCount: Int = 0
+
     private val currentStopsJson by lazy {
         intent.getStringExtra(EXTRA_CURRENT_STOPS_JSON) ?: ""
     }
@@ -40,6 +43,11 @@ class ManageRoutesActivity : AppCompatActivity() {
         const val EXTRA_CURRENT_COST        = "current_cost"
         const val EXTRA_CURRENT_STOP_COUNT  = "current_stop_count"
         const val RESULT_STOPS_JSON         = "result_stops_json"
+
+        const val PLAN_BASIC   = "basic"
+        const val PLAN_PREMIUM = "premium"
+        const val LIMIT_BASIC   = 1
+        const val LIMIT_PREMIUM = 10
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,20 +79,45 @@ class ManageRoutesActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                val userId = SupabaseClient.client.auth.currentUserOrNull()?.id
+
+                // Fetch user plan from profiles
+                if (userId != null) {
+                    try {
+                        val profiles = SupabaseClient.client.postgrest["profiles"]
+                            .select { filter { eq("id", userId) } }
+                            .decodeList<kotlinx.serialization.json.JsonObject>()
+                        val planValue = profiles.firstOrNull()
+                            ?.get("plan")
+                            ?.toString()
+                            ?.trim('"')
+                        userPlan = planValue ?: PLAN_BASIC
+                    } catch (e: Exception) {
+                        userPlan = PLAN_BASIC
+                    }
+                }
+
                 val routes = SupabaseClient.client.postgrest["saved_routes"]
                     .select {
                         filter {
-                            val userId = SupabaseClient.client.auth.currentUserOrNull()?.id
                             if (userId != null) eq("user_id", userId)
                         }
                         order("created_at", io.github.jan.supabase.postgrest.query.Order.DESCENDING)
                     }
                     .decodeList<SavedRoute>()
 
+                savedRoutesCount = routes.size
+                val limit = if (userPlan == PLAN_PREMIUM) LIMIT_PREMIUM else LIMIT_BASIC
+                val canSaveMore = savedRoutesCount < limit
+
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
+
+                    // Update save button state
+                    updateSaveButtonState(canSaveMore, limit)
+
                     if (routes.isEmpty()) {
-                        tvEmpty.visibility = View.VISIBLE
+                        tvEmpty.visibility  = View.VISIBLE
                         rvRoutes.visibility = View.GONE
                     } else {
                         tvEmpty.visibility  = View.GONE
@@ -101,6 +134,43 @@ class ManageRoutesActivity : AppCompatActivity() {
                     progressBar.visibility = View.GONE
                     Toast.makeText(this@ManageRoutesActivity,
                         "Erro ao carregar rotas: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun updateSaveButtonState(canSaveMore: Boolean, limit: Int) {
+        if (currentStopsJson.isBlank()) {
+            btnSaveCurrent.visibility = View.GONE
+            return
+        }
+
+        btnSaveCurrent.visibility = View.VISIBLE
+
+        val btnLabel   = btnSaveCurrent.findViewById<TextView>(R.id.tvSaveRouteLabel)
+        val btnSublabel = btnSaveCurrent.findViewById<TextView>(R.id.tvSavePlanInfo)
+
+        if (canSaveMore) {
+            btnSaveCurrent.isEnabled = true
+            btnSaveCurrent.alpha     = 1f
+            btnLabel.text            = "Salvar rota atual"
+            btnSublabel.text         = "$savedRoutesCount/$limit rotas salvas"
+            btnSublabel.visibility   = View.VISIBLE
+            btnSaveCurrent.setOnClickListener { showSaveDialog() }
+        } else {
+            btnSaveCurrent.isEnabled = false
+            btnSaveCurrent.alpha     = 0.5f
+            btnLabel.text            = "Limite atingido"
+            btnSublabel.text         = if (userPlan == PLAN_BASIC)
+                "Plano básico: 1 rota. Faça upgrade para Premium!"
+            else
+                "Limite de $limit rotas atingido."
+            btnSublabel.visibility   = View.VISIBLE
+            btnSaveCurrent.setOnClickListener {
+                if (userPlan == PLAN_BASIC) {
+                    Toast.makeText(this,
+                        "Exclua sua rota atual ou faça upgrade para Premium para salvar mais!",
+                        Toast.LENGTH_LONG).show()
                 }
             }
         }
