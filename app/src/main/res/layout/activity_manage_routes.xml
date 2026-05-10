@@ -49,15 +49,16 @@
 
         </LinearLayout>
 
-        <!-- Save current route button -->
+        <!-- Save current route button (state managed by code) -->
         <LinearLayout
             android:id="@+id/btnSaveCurrentRoute"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
+            android:layout_height="wrap_content"
             android:background="@drawable/bg_save_current_route"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
             android:visibility="gone">
 
             <TextView
@@ -66,15 +67,32 @@
                 android:text="💾"
                 android:textSize="18sp"/>
 
-            <TextView
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="10dp"
-                android:text="Salvar rota atual"
-                android:textColor="#4A2080"
-                android:textSize="15sp"
-                android:fontFamily="sans-serif-medium"/>
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvSaveRouteLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Salvar rota atual"
+                    android:textColor="#4A2080"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"/>
+
+                <TextView
+                    android:id="@+id/tvSavePlanInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="#7B3FBE"
+                    android:textSize="11sp"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
