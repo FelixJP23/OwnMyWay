@@ -74,6 +74,7 @@ class ProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
         setContentView(R.layout.activity_profile)
+        AppBottomNavigation.setup(this, selectedItemId = null)
 
         bindViews()
         setupListeners()

@@ -31,6 +31,11 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
+
+        <activity
+            android:name=".CountryRecommendationsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar"/>
         <activity
             android:name=".CreateRouteActivity"
             android:exported="false"
@@ -113,6 +118,11 @@
                 <data android:scheme="ownmyway" android:host="reset-password" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ManageRoutesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OwnMyWay.NoActionBar"/>
+
     </application>
 
 </manifest>
