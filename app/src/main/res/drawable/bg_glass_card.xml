@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Liquid glass card background: dark translucent fill so the map
+     bleeds through, with a thin white border for the glass-edge effect
+     and generous rounded corners. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#E61A1A1A" />
+    <corners android:radius="24dp" />
+    <stroke
+        android:width="0.5dp"
+        android:color="#30FFFFFF" />
+</shape>
