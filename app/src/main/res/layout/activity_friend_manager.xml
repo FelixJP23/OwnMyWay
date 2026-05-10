@@ -4,194 +4,225 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F8F4FF">
+    android:background="#F8F4FF"> <androidx.cardview.widget.CardView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardElevation="4dp"
+    app:cardCornerRadius="0dp"
+    app:cardBackgroundColor="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_search_oval"
+            android:backgroundTint="#F3E5F5"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="#4A2080" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Minhas Conexões"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#4A2080"
+            android:layout_marginStart="16dp"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:fillViewport="true">
 
-        <!-- HEADER: Botão Voltar e Título -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="16dp">
+            android:orientation="vertical"
+            android:padding="20dp">
 
-            <ImageButton
-                android:id="@+id/btnBack"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_arrow_back"
-                app:tint="#4A2080" />
+            <TextView
+                android:id="@+id/tvPedidosTitulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pedidos Pendentes"
+                android:textSize="14sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.1"
+                android:textStyle="bold"
+                android:textColor="#4A2080"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvIncomingRequests"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tvMyFriendsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sua Rede de Viajantes"
+                android:textSize="14sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.1"
+                android:textStyle="bold"
+                android:textColor="#4A2080"
+                android:layout_marginBottom="12dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMyFriends"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:minHeight="60dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E1BEE7"
+                android:layout_marginBottom="24dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Gerenciar Conexões"
-                android:textSize="20sp"
+                android:text="Explorar Novos Horizontes"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="#4A2080"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fillViewport="true">
+                android:layout_marginBottom="12dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_search_oval"
+                android:backgroundTint="#FFFFFF"
+                android:elevation="2dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp">
 
-                <!-- SEÇÃO 1: Pedidos Recebidos (Só aparece se houver pedidos) -->
-                <TextView
-                    android:id="@+id/tvPedidosTitulo"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_menu_search"
+                    app:tint="#9575CD" />
+
+                <EditText
+                    android:id="@+id/etSearchUser"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:hint="Procure por @usuario..."
+                    android:background="@android:color/transparent"
+                    android:paddingStart="12dp"
+                    android:textColor="#4A2080"
+                    android:textSize="15sp"/>
+
+                <Button
+                    android:id="@+id/btnSearch"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Pedidos Recebidos"
-                    android:textStyle="bold"
-                    android:textColor="#333333"
-                    android:visibility="gone"
-                    android:layout_marginBottom="8dp"/>
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvIncomingRequests"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:visibility="gone"/>
-
-                <!-- SEÇÃO 2: Meus Amigos -->
-                <TextView
-                    android:id="@+id/tvMyFriendsTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Meus Amigos"
-                    android:textStyle="bold"
-                    android:textColor="#333333"
-                    android:layout_marginBottom="8dp"/>
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvMyFriends"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:minHeight="80dp"/>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#D1C4E9"
-                    android:layout_marginBottom="16dp"/>
-
-                <!-- SEÇÃO 3: Encontrar Viajantes -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Conhecer Viajantes"
-                    android:textStyle="bold"
-                    android:textColor="#333333"/>
-
-                <!-- Barra de Busca Formata (Bordas Arredondadas) -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp">
-
-                    <EditText
-                        android:id="@+id/etSearchUser"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="48dp"
-                        android:hint="Buscar por @usuario..."
-                        android:background="@drawable/bg_search_oval"
-                        android:padding="12dp"
-                        android:paddingStart="20dp"
-                        android:textColor="#4A2080"
-                        android:textSize="14sp"/>
-
-                    <Button
-                        android:id="@+id/btnSearch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="48dp"
-                        android:text="Buscar"
-                        android:backgroundTint="#4A2080"
-                        android:textColor="#FFFFFF"
-                        android:layout_marginStart="8dp"
-                        app:cornerRadius="24dp"/>
-                </LinearLayout>
-
-                <!-- Resultados da Busca / Exploração -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvSearchResults"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:nestedScrollingEnabled="false"/>
-
+                    android:layout_height="36dp"
+                    android:text="IR"
+                    android:textSize="12sp"
+                    android:backgroundTint="#4A2080"
+                    android:textColor="#FFFFFF"
+                    app:cornerRadius="18dp"
+                    android:paddingHorizontal="16dp"/>
             </LinearLayout>
-        </ScrollView>
 
-        <!-- FOOTER: Carrossel de Paginação (1, 2, 3, 4) -->
-        <LinearLayout
-            android:id="@+id/layoutPagination"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingTop="8dp"
-            android:background="#F8F4FF">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSearchResults"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:nestedScrollingEnabled="false"/>
 
-            <Button
-                android:id="@+id/btnPage1"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:text="1"
-                android:textColor="#4A2080"
-                android:textStyle="bold" />
+            <View android:layout_width="match_parent" android:layout_height="80dp"/>
 
-            <Button
-                android:id="@+id/btnPage2"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:text="2"
-                android:textColor="#4A2080" />
-
-            <Button
-                android:id="@+id/btnPage3"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:text="3"
-                android:textColor="#4A2080" />
-
-            <Button
-                android:id="@+id/btnPage4"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:text="4"
-                android:textColor="#4A2080" />
         </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/layoutPagination"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingVertical="12dp"
+        android:background="#FFFFFF"
+        android:elevation="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Páginas:"
+            android:textColor="#9575CD"
+            android:textSize="12sp"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/btnPage1"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="1"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#4A2080"
+            app:cornerRadius="20dp"
+            android:layout_marginHorizontal="2dp"/>
+
+        <Button
+            android:id="@+id/btnPage2"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="2"
+            android:textColor="#4A2080"
+            app:cornerRadius="20dp"
+            android:layout_marginHorizontal="2dp"/>
+
+        <Button
+            android:id="@+id/btnPage3"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="3"
+            android:textColor="#4A2080"
+            app:cornerRadius="20dp"
+            android:layout_marginHorizontal="2dp"/>
+
+        <Button
+            android:id="@+id/btnPage4"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="4"
+            android:textColor="#4A2080"
+            app:cornerRadius="20dp"
+            android:layout_marginHorizontal="2dp"/>
     </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        app:itemIconTint="@color/omw_purple_main"
-        app:itemTextColor="@color/omw_purple_main"
+        android:layout_height="64dp"
+        android:background="#FFFFFF"
+        app:elevation="16dp"
+        app:itemIconTint="#4A2080"
+        app:itemTextColor="#4A2080"
         app:menu="@menu/bottom_nav_menu" />
 
 </LinearLayout>
