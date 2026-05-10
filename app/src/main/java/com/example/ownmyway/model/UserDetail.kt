@@ -1,7 +1,6 @@
 package com.example.ownmyway.model
 
 import kotlinx.serialization.Serializable
-
 @Serializable
 data class UserDetail(
     val id: String,
