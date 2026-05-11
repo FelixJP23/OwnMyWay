@@ -47,13 +47,24 @@ object FriendRepository {
 
     suspend fun respondToFriendRequest(senderId: String, accept: Boolean) = withContext(Dispatchers.IO) {
         val myId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: throw Exception("Não logado")
-        val newStatus = if (accept) "accepted" else "rejected"
-        SupabaseClient.client.postgrest["friendships"].update(
-            { set("status", newStatus) }
-        ) {
-            filter {
-                eq("sender_id", senderId)
-                eq("receiver_id", myId)
+
+        if (accept) {
+            // Se aceitar, atualizamos o status para 'accepted'
+            SupabaseClient.client.postgrest["friendships"].update(
+                { set("status", "accepted") }
+            ) {
+                filter {
+                    eq("sender_id", senderId)
+                    eq("receiver_id", myId)
+                }
+            }
+        } else {
+            // SE RECUSAR, DELETAMOS A LINHA (Lógica mais comum e segura)
+            SupabaseClient.client.postgrest["friendships"].delete {
+                filter {
+                    eq("sender_id", senderId)
+                    eq("receiver_id", myId)
+                }
             }
         }
     }
