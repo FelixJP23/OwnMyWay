@@ -1,5 +1,8 @@
 package com.example.ownmyway
 
+import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -28,6 +31,7 @@ class FriendManagerActivity : AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_friend_manager)
 
+        // Inicialização da navegação inferior (Bottom Nav)
         AppBottomNavigation.setup(this, R.id.nav_friends)
 
         // Inicialização de Views
@@ -45,7 +49,7 @@ class FriendManagerActivity : AppCompatActivity() {
         // Botão Voltar
         findViewById<ImageButton>(R.id.btnBack).setOnClickListener { finish() }
 
-        // Configuração da Busca por @Handle
+        // Configuração da Busca por @Username
         findViewById<Button>(R.id.btnSearch).setOnClickListener {
             val query = etSearchUser.text.toString().trim()
             if (query.isNotEmpty()) performSearchByUsername(query)
@@ -67,12 +71,31 @@ class FriendManagerActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnPage4).setOnClickListener { loadExploreUsers(4) }
     }
 
+    private fun updatePaginationUI(activePage: Int) {
+        val buttons = listOf(
+            findViewById<Button>(R.id.btnPage1),
+            findViewById<Button>(R.id.btnPage2),
+            findViewById<Button>(R.id.btnPage3),
+            findViewById<Button>(R.id.btnPage4)
+        )
+
+        buttons.forEachIndexed { index, button ->
+            val isSelected = (index + 1) == activePage
+            if (isSelected) {
+                button.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4A2080"))
+                button.setTextColor(Color.WHITE)
+            } else {
+                button.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+                button.setTextColor(Color.parseColor("#4A2080"))
+            }
+        }
+    }
+
     // --- FUNÇÕES DE CARGA DE DADOS ---
 
     private fun loadIncomingRequests() {
         lifecycleScope.launch {
             try {
-                // Busca pedidos com detalhes (Nome e Foto) do remetente
                 val requests = FriendRepository.getIncomingRequestsWithDetails()
                 if (requests.isNotEmpty()) {
                     tvPedidosTitulo.visibility = View.VISIBLE
@@ -92,7 +115,8 @@ class FriendManagerActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val friends = FriendRepository.getMyFriends()
-                rvMyFriends.adapter = MyFriendsAdapter(friends)
+                // Agora passamos a função de clique para abrir o perfil
+                rvMyFriends.adapter = MyFriendsAdapter(friends, ::openFriendProfile)
             } catch (e: Exception) {
                 Log.e("FriendManager", "Erro ao carregar amigos: ${e.message}")
             }
@@ -102,12 +126,12 @@ class FriendManagerActivity : AppCompatActivity() {
     private fun loadExploreUsers(page: Int) {
         val pageSize = 10
         val offset = (page - 1) * pageSize
+        updatePaginationUI(page)
 
         lifecycleScope.launch {
             try {
                 val users = FriendRepository.getUsersPaginated(limit = pageSize, offset = offset)
                 rvSearch.adapter = SearchAdapter(users, ::sendRequest)
-                Toast.makeText(this@FriendManagerActivity, "Página $page carregada", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Log.e("FriendManager", "Erro na paginação: ${e.message}")
             }
@@ -117,15 +141,11 @@ class FriendManagerActivity : AppCompatActivity() {
     private fun performSearchByUsername(query: String) {
         lifecycleScope.launch {
             try {
-                // Remove o @ caso o usuário tenha digitado (ex: @arturzera -> arturzera)
                 val cleanQuery = query.replace("@", "").trim()
-
                 val users = FriendRepository.searchUsersByUsername(cleanQuery)
-
                 if (users.isEmpty()) {
-                    Toast.makeText(this@FriendManagerActivity, "Usuário '$cleanQuery' não encontrado", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@FriendManagerActivity, "Usuário não encontrado", Toast.LENGTH_SHORT).show()
                 }
-
                 rvSearch.adapter = SearchAdapter(users, ::sendRequest)
             } catch (e: Exception) {
                 Log.e("FriendManager", "Erro na busca: ${e.message}")
@@ -133,7 +153,15 @@ class FriendManagerActivity : AppCompatActivity() {
         }
     }
 
-    // --- AÇÕES DE AMIZADE ---
+    // --- AÇÕES ---
+
+    private fun openFriendProfile(friend: UserDetail) {
+        val intent = Intent(this, ProfileActivity::class.java).apply {
+            putExtra("USER_ID", friend.id)
+            putExtra("IS_FRIEND", true)
+        }
+        startActivity(intent)
+    }
 
     private fun respondToRequest(senderId: String, accept: Boolean) {
         lifecycleScope.launch {
@@ -154,7 +182,7 @@ class FriendManagerActivity : AppCompatActivity() {
                 FriendRepository.sendFriendRequest(targetId)
                 Toast.makeText(this@FriendManagerActivity, "Convite enviado!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                Toast.makeText(this@FriendManagerActivity, "Você já possui um vínculo com este usuário", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@FriendManagerActivity, "Vínculo já existe", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -162,10 +190,11 @@ class FriendManagerActivity : AppCompatActivity() {
 
 // --- ADAPTERS ---
 
-// 1. Adapter para busca e exploração (Usa item_user.xml)
+// 1. Adapter para busca e exploração (Com Foto)
 class SearchAdapter(private val users: List<UserDetail>, private val onAddClick: (String) -> Unit) : RecyclerView.Adapter<SearchAdapter.VH>() {
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val nameText: TextView = view.findViewById(R.id.tvUserName)
+        val userPhoto: ImageView = view.findViewById(R.id.ivUserPhoto)
         val addButton: Button = view.findViewById(R.id.btnAddFriend)
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -174,16 +203,28 @@ class SearchAdapter(private val users: List<UserDetail>, private val onAddClick:
     }
     override fun onBindViewHolder(holder: VH, position: Int) {
         val user = users[position]
-        holder.nameText.text = "${user.full_name} (${user.username ?: "@viajante"})"
+        holder.nameText.text = "${user.full_name ?: "Usuário"} (${user.username ?: "@viajante"})"
+
+        Glide.with(holder.itemView.context)
+            .load(user.avatar_url)
+            .placeholder(R.drawable.ic_user_placeholder)
+            .circleCrop()
+            .into(holder.userPhoto)
+
         holder.addButton.setOnClickListener { onAddClick(user.id) }
     }
     override fun getItemCount() = users.size
 }
 
-// 2. Adapter para Meus Amigos (Usa item_user.xml)
-class MyFriendsAdapter(private val friends: List<UserDetail>) : RecyclerView.Adapter<MyFriendsAdapter.VH>() {
+// 2. Adapter para Meus Amigos (Com Foto e Navegação de Perfil)
+class MyFriendsAdapter(
+    private val friends: List<UserDetail>,
+    private val onProfileClick: (UserDetail) -> Unit
+) : RecyclerView.Adapter<MyFriendsAdapter.VH>() {
+
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val nameText: TextView = view.findViewById(R.id.tvUserName)
+        val userPhoto: ImageView = view.findViewById(R.id.ivUserPhoto)
         val actionButton: Button = view.findViewById(R.id.btnAddFriend)
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -192,13 +233,21 @@ class MyFriendsAdapter(private val friends: List<UserDetail>) : RecyclerView.Ada
     }
     override fun onBindViewHolder(holder: VH, position: Int) {
         val friend = friends[position]
-        holder.nameText.text = friend.full_name
+        holder.nameText.text = friend.full_name ?: friend.username
+
+        Glide.with(holder.itemView.context)
+            .load(friend.avatar_url)
+            .placeholder(R.drawable.ic_user_placeholder)
+            .circleCrop()
+            .into(holder.userPhoto)
+
         holder.actionButton.text = "Perfil"
+        holder.actionButton.setOnClickListener { onProfileClick(friend) }
     }
     override fun getItemCount() = friends.size
 }
 
-// 3. Adapter para Pedidos Recebidos (Usa item_pedido_recebido.xml com Foto)
+// 3. Adapter para Pedidos Recebidos
 class RequestAdapter(
     private val requests: List<IncomingRequestDetail>,
     private val onRespond: (String, Boolean) -> Unit
@@ -219,20 +268,16 @@ class RequestAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = requests[position]
         val profile = item.senderDetail
-        val friendship = item.friendship
 
-        // Exibe o Nome
         holder.nameText.text = profile.full_name ?: profile.username ?: "Usuário"
-
-        // Carrega foto com Glide
         Glide.with(holder.itemView.context)
             .load(profile.avatar_url)
             .placeholder(R.drawable.ic_user_placeholder)
             .circleCrop()
             .into(holder.userPhoto)
 
-        holder.btnAccept.setOnClickListener { onRespond(friendship.sender_id, true) }
-        holder.btnDecline.setOnClickListener { onRespond(friendship.sender_id, false) }
+        holder.btnAccept.setOnClickListener { onRespond(item.friendship.sender_id, true) }
+        holder.btnDecline.setOnClickListener { onRespond(item.friendship.sender_id, false) }
     }
 
     override fun getItemCount() = requests.size

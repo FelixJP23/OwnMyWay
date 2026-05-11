@@ -9,26 +9,36 @@
     app:cardBackgroundColor="#F3E5F5"> <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="12dp"
-    android:gravity="center_vertical">
+    android:padding="12dp">
+
+    <ImageView
+        android:id="@+id/ivUserPhoto"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/ic_user_placeholder"
+        android:scaleType="centerCrop" />
 
     <TextView
         android:id="@+id/tvUserName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
         android:layout_weight="1"
         android:text="Nome do Usuário"
-        android:textColor="#4A2080" android:textStyle="bold"
-        android:textSize="16sp" />
+        android:textColor="#4A2080"
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/btnAddFriend"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Conectar"
-        android:textColor="#FFFFFF"
+        app:cornerRadius="20dp"
         android:textSize="12sp"
-        android:textAllCaps="false"
-        android:backgroundTint="#4A2080" /> </LinearLayout>
+        app:backgroundTint="#4A2080"
+        android:textColor="#FFFFFF"/>
+
+</LinearLayout>
 </androidx.cardview.widget.CardView>

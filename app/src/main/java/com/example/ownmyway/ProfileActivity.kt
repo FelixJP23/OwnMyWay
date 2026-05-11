@@ -115,38 +115,34 @@ class ProfileActivity : AppCompatActivity() {
     private fun loadProfile() {
         lifecycleScope.launch {
             try {
-                val user = SupabaseClient.client.auth.currentUserOrNull()
-                if (user == null) {
-                    Toast.makeText(
-                        this@ProfileActivity,
-                        "Usuário não autenticado.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                // 1. Lógica de seleção de ID (Amigo vs Próprio)
+                val intentUserId = intent.getStringExtra("USER_ID")
+                val userIdToLoad = intentUserId ?: SupabaseClient.client.auth.currentUserOrNull()?.id
+
+                if (userIdToLoad == null) {
+                    Toast.makeText(this@ProfileActivity, "Usuário não autenticado.", Toast.LENGTH_LONG).show()
                     finish()
                     return@launch
                 }
 
-                currentUserId = user.id
+                currentUserId = userIdToLoad
 
                 val profiles = SupabaseClient.client.postgrest["profiles"]
                     .select {
-                        filter { eq("id", user.id) }
+                        filter { eq("id", userIdToLoad) }
                     }
                     .decodeList<UserProfile>()
 
                 val profile = profiles.firstOrNull() ?: return@launch
 
+                // 2. Preenchimento normal dos campos
                 currentAvatarUrl = profile.avatar_url
                 currentPreferredTransport = profile.preferred_transport
-
                 loadAvatarIntoView(currentAvatarUrl)
-
                 etName.setText(profile.full_name.orEmpty())
                 etUsername.setText(profile.username.orEmpty())
                 etBio.setText(profile.bio.orEmpty())
-
-                loadLocalTravelTexts(user.id)
-
+                loadLocalTravelTexts(userIdToLoad)
                 selectedStyles.clear()
                 selectedStyles.addAll(profile.interests ?: emptyList())
                 renderStyleChips()
@@ -163,14 +159,42 @@ class ProfileActivity : AppCompatActivity() {
                     "fast" -> radioPaceFast.isChecked = true
                 }
 
+                // --- BLOQUEIO DE EDIÇÃO ---
+                if (intentUserId != null) {
+                    disableEditing()
+                }
+
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@ProfileActivity,
-                    "Erro ao carregar perfil: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(this@ProfileActivity, "Erro ao carregar perfil: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    /**
+     * Função auxiliar para desativar todos os campos e esconder botões
+     */
+    private fun disableEditing() {
+        // Esconde os botões que permitem alteração
+        btnSaveIdentity.visibility = android.view.View.GONE
+        btnEditPhoto.visibility = android.view.View.GONE
+        btnAddStyle.visibility = android.view.View.GONE
+        btnLogoutProfile.visibility = android.view.View.GONE
+        // Desativa a edição dos campos de texto
+        etName.isEnabled = false
+        etUsername.isEnabled = false
+        etBio.isEnabled = false
+        etVisitedPlaces.isEnabled = false
+        etWantToVisit.isEnabled = false
+
+        // Desativa os RadioGroups (Budget e Pace)
+        for (i in 0 until radioGroupBudget.childCount) {
+            radioGroupBudget.getChildAt(i).isEnabled = false
+        }
+        for (i in 0 until radioGroupPace.childCount) {
+            radioGroupPace.getChildAt(i).isEnabled = false
+        }
+
+        btnCancel.text = "Voltar"
     }
 
     private fun saveProfile() {
