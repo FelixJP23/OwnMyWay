@@ -60,9 +60,9 @@ class MealNotificationReceiver : BroadcastReceiver() {
         fun createChannel(context: Context) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val channel = NotificationChannel(
-                    CHANNEL_ID, "Meal Suggestions",
+                    CHANNEL_ID, "Sugestões de Refeições",
                     NotificationManager.IMPORTANCE_HIGH
-                ).apply { description = "Lunch and dinner suggestions while traveling" }
+                ).apply { description = "Sugestões de almoço e jantar durante a viagem" }
                 context.getSystemService(NotificationManager::class.java)
                     .createNotificationChannel(channel)
             }
@@ -74,11 +74,11 @@ class MealNotificationReceiver : BroadcastReceiver() {
         val mealType = intent.getStringExtra(EXTRA_MEAL_TYPE) ?: return
         val isLunch  = mealType == MEAL_LUNCH
 
-        val title   = if (isLunch) "🍽️ It's almost lunch!" else "🌙 It's almost dinner!"
+        val title   = if (isLunch) "🍽️ Está quase na hora do almoço!" else "🌙 Está quase na hora do jantar!"
         val message = if (isLunch)
-            "Let's replenish our energy! Tap to find a restaurant near you."
+            "Vamos repor as energias! Toque para encontrar um restaurante perto de você."
         else
-            "Let's finish our day well! Tap to find a restaurant near you."
+            "Vamos terminar bem o dia! Toque para encontrar um restaurante perto de você."
 
         val tapIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

@@ -28,7 +28,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             app:tint="@android:color/white"
-            android:contentDescription="Back"/>
+            android:contentDescription="Voltar"/>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -40,7 +40,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Plan Your Day"
+                android:text="Planeje seu Dia"
                 android:textColor="@android:color/white"
                 android:textSize="22sp"
                 android:textStyle="bold"
@@ -49,7 +49,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="What do you want to do today?"
+                android:text="O que você quer fazer hoje?"
                 android:textColor="#D4B8F0"
                 android:textSize="13sp"/>
 
@@ -92,7 +92,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📍 Specific places"
+                        android:text="📍 Lugares específicos"
                         android:textColor="#4A2080"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -101,7 +101,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Are there specific places you want to visit? (optional)"
+                        android:text="Há lugares específicos que você quer visitar? (opcional)"
                         android:textColor="#888888"
                         android:textSize="12sp"
                         android:layout_marginBottom="12dp"/>
@@ -117,7 +117,7 @@
                             android:layout_width="0dp"
                             android:layout_height="44dp"
                             android:layout_weight="1"
-                            android:hint="Type a place name..."
+                            android:hint="Digite o nome de um lugar..."
                             android:textSize="14sp"
                             android:background="@drawable/bg_input_field"
                             android:paddingHorizontal="12dp"
@@ -132,7 +132,7 @@
                             android:background="@drawable/bg_add_btn"
                             android:src="@android:drawable/ic_input_add"
                             app:tint="@android:color/white"
-                            android:contentDescription="Add place"/>
+                            android:contentDescription="Adicionar lugar"/>
 
                     </LinearLayout>
 
@@ -172,7 +172,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🌅 Breakfast"
+                        android:text="🌅 Café da manhã"
                         android:textColor="#4A2080"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -181,7 +181,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Will you have breakfast at a hotel?"
+                        android:text="Você vai tomar café da manhã no hotel?"
                         android:textColor="#555555"
                         android:textSize="14sp"
                         android:layout_marginBottom="8dp"/>
@@ -197,7 +197,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Yes, at the hotel"
+                            android:text="Sim, no hotel"
                             android:buttonTint="#4A2080"
                             android:textColor="#333333"/>
 
@@ -206,7 +206,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="No, suggest a café"
+                            android:text="Não, sugira um café"
                             android:buttonTint="#4A2080"
                             android:textColor="#333333"
                             android:checked="true"/>
@@ -233,7 +233,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🍽️ Lunch"
+                        android:text="🍽️ Almoço"
                         android:textColor="#4A2080"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -242,7 +242,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Want a restaurant suggestion at 11:00 AM?"
+                        android:text="Quer uma sugestão de restaurante às 11:00?"
                         android:textColor="#555555"
                         android:textSize="14sp"
                         android:layout_marginBottom="8dp"/>
@@ -258,7 +258,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Yes, please!"
+                            android:text="Sim, por favor!"
                             android:buttonTint="#4A2080"
                             android:textColor="#333333"/>
 
@@ -267,7 +267,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="No thanks"
+                            android:text="Não, obrigado"
                             android:buttonTint="#4A2080"
                             android:textColor="#333333"
                             android:checked="true"/>
@@ -294,7 +294,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🌙 Dinner"
+                        android:text="🌙 Jantar"
                         android:textColor="#4A2080"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -303,7 +303,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Want a restaurant suggestion at 7:00 PM?"
+                        android:text="Quer uma sugestão de restaurante às 19:00?"
                         android:textColor="#555555"
                         android:textSize="14sp"
                         android:layout_marginBottom="8dp"/>
@@ -319,7 +319,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Yes, please!"
+                            android:text="Sim, por favor!"
                             android:buttonTint="#4A2080"
                             android:textColor="#333333"/>
 
@@ -328,7 +328,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="No thanks"
+                            android:text="Não, obrigado"
                             android:buttonTint="#4A2080"
                             android:textColor="#333333"
                             android:checked="true"/>
@@ -355,7 +355,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🎯 Your hobbies"
+                        android:text="🎯 Seus hobbies"
                         android:textColor="#4A2080"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -364,7 +364,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="We'll prioritize places that match your interests"
+                        android:text="Vamos priorizar lugares que combinam com seus interesses"
                         android:textColor="#888888"
                         android:textSize="12sp"
                         android:layout_marginBottom="12dp"/>

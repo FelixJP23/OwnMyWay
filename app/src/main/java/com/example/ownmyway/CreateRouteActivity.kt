@@ -92,7 +92,7 @@ class CreateRouteActivity : AppCompatActivity() {
     private fun searchAndAddPlace(query: String) {
         btnAddPlace.isEnabled = false
         tvSearchStatus.visibility = View.VISIBLE
-        tvSearchStatus.text = "🔍 Searching for \"$query\"..."
+        tvSearchStatus.text = "🔍 Buscando \"$query\"..."
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -111,19 +111,19 @@ class CreateRouteActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     btnAddPlace.isEnabled = true
                     if (results.isEmpty()) {
-                        tvSearchStatus.text = "❌ Place not found. Try a different name."
+                        tvSearchStatus.text = "❌ Lugar não encontrado. Tente outro nome."
                         tvSearchStatus.setTextColor(Color.parseColor("#C62828"))
                     } else {
                         val place = results.first()
                         // Check not already added
                         if (resolvedPlaces.any { it.place_id == place.place_id }) {
-                            tvSearchStatus.text = "⚠️ \"${place.name}\" already added."
+                            tvSearchStatus.text = "⚠️ \"${place.name}\" já foi adicionado."
                             tvSearchStatus.setTextColor(Color.parseColor("#E65100"))
                         } else {
                             resolvedPlaces.add(place)
                             addSpecificChip(place)
                             etSpecificPlace.setText("")
-                            tvSearchStatus.text = "✅ \"${place.name}\" added to your route!"
+                            tvSearchStatus.text = "✅ \"${place.name}\" adicionado à sua rota!"
                             tvSearchStatus.setTextColor(Color.parseColor("#2E7D32"))
                         }
                     }
@@ -131,7 +131,7 @@ class CreateRouteActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     btnAddPlace.isEnabled = true
-                    tvSearchStatus.text = "❌ Error searching. Check your connection."
+                    tvSearchStatus.text = "❌ Erro na busca. Verifique sua conexão."
                     tvSearchStatus.setTextColor(Color.parseColor("#C62828"))
                 }
             }
@@ -281,7 +281,7 @@ class CreateRouteActivity : AppCompatActivity() {
         val selectedHobbies = getSelectedHobbies()
         if (selectedHobbies.isEmpty()) {
             Toast.makeText(this,
-                "Select at least one hobby to personalise your route!",
+                "Selecione pelo menos um hobby para personalizar sua rota!",
                 Toast.LENGTH_SHORT).show()
             return
         }

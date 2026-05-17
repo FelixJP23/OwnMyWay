@@ -84,7 +84,7 @@ class OfflineMapActivity : AppCompatActivity() {
 
     // ── Download ──────────────────────────────────────────────────────────
     private fun downloadMap(routeId: String, stops: List<NearbyPlace>) {
-        tvStatus.text          = "Downloading offline map..."
+        tvStatus.text          = "Baixando mapa offline..."
         tvStatus.visibility    = View.VISIBLE
         layoutProgress.visibility = View.VISIBLE  // show card
 
@@ -96,7 +96,7 @@ class OfflineMapActivity : AppCompatActivity() {
                 onProgress = { p ->
                     progressBar.max      = p.total
                     progressBar.progress = p.current
-                    tvProgress.text      = "${p.current}/${p.total} tiles"
+                    tvProgress.text      = "${p.current}/${p.total} blocos"
                 }
             )
 
@@ -109,7 +109,7 @@ class OfflineMapActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(
                     this@OfflineMapActivity,
-                    "❌ Download failed. Check your connection.",
+                    "❌ Falha no download. Verifique sua conexão.",
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -149,7 +149,7 @@ class OfflineMapActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this,
-                    "✅ Map saved to Gallery → Pictures/OwnMyWay",
+                    "✅ Mapa salvo na Galeria → Pictures/OwnMyWay",
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -157,7 +157,7 @@ class OfflineMapActivity : AppCompatActivity() {
             android.util.Log.e("OfflineMap", "Gallery save error", e)
             Toast.makeText(
                 this,
-                "Map downloaded but could not save to gallery.",
+                "Mapa baixado, mas não foi possível salvá-lo na galeria.",
                 Toast.LENGTH_SHORT
             ).show()
         }

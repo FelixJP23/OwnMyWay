@@ -7,17 +7,17 @@ enum class PlaceCategory(
     val group: Group
 ) {
     // Your traveling helper
-    ART("Art", "🎨", "art_gallery", Group.TRAVELER),
-    MUSEUMS("Museums", "🏛️", "museum", Group.TRAVELER),
-    ATTRACTIONS("Attractions", "🗺️", "tourist_attraction", Group.TRAVELER),
-    NIGHTLIFE("Nightlife", "🌙", "night_club", Group.TRAVELER),
-    SHOPPING("Shopping", "🛍️", "shopping_mall", Group.TRAVELER),
-    PARKS("Parks", "🌳", "park", Group.TRAVELER),
-    ENTERTAINMENT("Entertainment", "🎭", "amusement_park", Group.TRAVELER),
+    ART("Arte", "🎨", "art_gallery", Group.TRAVELER),
+    MUSEUMS("Museus", "🏛️", "museum", Group.TRAVELER),
+    ATTRACTIONS("Atrações", "🗺️", "tourist_attraction", Group.TRAVELER),
+    NIGHTLIFE("Vida noturna", "🌙", "night_club", Group.TRAVELER),
+    SHOPPING("Compras", "🛍️", "shopping_mall", Group.TRAVELER),
+    PARKS("Parques", "🌳", "park", Group.TRAVELER),
+    ENTERTAINMENT("Entretenimento", "🎭", "amusement_park", Group.TRAVELER),
     // General
-    RESTAURANTS("Restaurants", "🍽️", "restaurant", Group.GENERAL),
-    BARS("Bars", "🍺", "bar", Group.GENERAL),
-    HOTELS("Hotels", "🏨", "lodging", Group.GENERAL),
+    RESTAURANTS("Restaurantes", "🍽️", "restaurant", Group.GENERAL),
+    BARS("Bares", "🍺", "bar", Group.GENERAL),
+    HOTELS("Hotéis", "🏨", "lodging", Group.GENERAL),
     CAFES("Cafés", "☕", "cafe", Group.GENERAL);
 
     enum class Group { TRAVELER, GENERAL }
