@@ -2,14 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_home"
-        android:icon="@android:drawable/ic_menu_today"
+        android:icon="@drawable/ic_bottom_home"
         android:title="Início" />
     <item
         android:id="@+id/nav_friends"
-        android:icon="@android:drawable/ic_menu_my_calendar"
+        android:icon="@drawable/ic_bottom_friends"
         android:title="Amigos" />
     <item
         android:id="@+id/nav_budget"
-        android:icon="@android:drawable/ic_menu_agenda"
+        android:icon="@drawable/ic_bottom_budget"
         android:title="Budget" />
 </menu>
