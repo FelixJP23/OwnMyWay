@@ -95,10 +95,22 @@
             android:textSize="12sp" />
 
         <Button
-            android:id="@+id/btnOpenCountry"
+            android:id="@+id/btnAddToFavorites"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="16dp"
+            android:background="@drawable/bg_button_primary"
+            android:fontFamily="sans-serif-medium"
+            android:text="Adicionar aos favoritos"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/btnOpenCountry"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="12dp"
             android:background="@drawable/bg_register_cta"
             android:fontFamily="sans-serif-medium"
             android:text="Ver no mapa integrado"

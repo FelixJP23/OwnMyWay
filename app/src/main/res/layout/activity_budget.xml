@@ -164,7 +164,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@android:drawable/ic_dialog_info"
-                        android:tint="#4A2080" />
+                        app:tint="#4A2080" />
 
                     <TextView
                         android:id="@+id/tvProjectionPlaceholder"
@@ -214,7 +214,7 @@
                             android:layout_height="36dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@android:drawable/ic_menu_agenda"
-                            android:tint="#4A2080"
+                            app:tint="#4A2080"
                             android:contentDescription="Relatório"/>
                     </LinearLayout>
 

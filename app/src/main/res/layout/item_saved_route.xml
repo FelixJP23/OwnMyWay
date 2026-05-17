@@ -86,7 +86,7 @@
             android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_delete"
-            android:tint="#CCCCCC"
+            app:tint="#CCCCCC"
             android:contentDescription="Excluir rota"/>
 
     </LinearLayout>
