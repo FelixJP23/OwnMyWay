@@ -237,7 +237,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     } else {
                         fabOffline.visibility = View.GONE
                         Toast.makeText(this@MainActivity,
-                            "No places found for your preferences. Try different hobbies!", Toast.LENGTH_LONG).show()
+                            "Nenhum lugar encontrado para suas preferências. Tente outros hobbies!", Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -357,7 +357,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         // Offline FAB
         fabOffline.setOnClickListener {
             if (lastRouteStops.isEmpty()) {
-                Toast.makeText(this, "Create a route first!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Crie uma rota primeiro!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             startActivity(Intent(this, OfflineMapActivity::class.java).apply {
@@ -1032,7 +1032,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             } catch (e: Exception) {
                 Log.e("MainActivity", "Weather Error", e)
-                withContext(Dispatchers.Main) { tvWeatherCondition.text = "Error" }
+                withContext(Dispatchers.Main) { tvWeatherCondition.text = "Erro" }
             }
         }
     }
@@ -1072,7 +1072,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
             withContext(Dispatchers.Main) {
                 if (allPlaces.isEmpty()) {
-                    Toast.makeText(this@MainActivity, "No places found nearby", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Nenhum lugar encontrado por perto", Toast.LENGTH_SHORT).show()
                     return@withContext
                 }
                 allPlaces.forEach { place ->
@@ -1135,7 +1135,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     // ── Draw route ────────────────────────────────────────────────────────
     fun drawRoute(destination: LatLng, placeName: String) {
         val origin = currentLatLng ?: run {
-            Toast.makeText(this, "Could not get your location", Toast.LENGTH_SHORT).show(); return
+            Toast.makeText(this, "Não foi possível obter sua localização", Toast.LENGTH_SHORT).show(); return
         }
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -1147,7 +1147,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 val routes = JSONObject(body).getJSONArray("routes")
                 if (routes.length() == 0) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@MainActivity, "No route found", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, "Nenhuma rota encontrada", Toast.LENGTH_SHORT).show()
                     }; return@launch
                 }
                 val points = routes.getJSONObject(0).getJSONObject("overview_polyline").getString("points")
@@ -1158,7 +1158,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     cancelTravelPromptWatcher()
                     map.animateCamera(CameraUpdateFactory.newLatLngBounds(
                         LatLngBounds.builder().include(origin).include(destination).build(), 120))
-                    Toast.makeText(this@MainActivity, "Route to $placeName", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Rota para $placeName", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) { Log.e("MainActivity", "Route error", e) }
         }

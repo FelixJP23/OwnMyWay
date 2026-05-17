@@ -112,7 +112,7 @@ class CameraActivity : AppCompatActivity() {
                     Log.e("Camera", "Capture failed", exception)
                     progressBar.visibility = View.GONE
                     btnCapture.isEnabled = true
-                    Toast.makeText(this@CameraActivity, "Capture failed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@CameraActivity, "Falha ao capturar", Toast.LENGTH_SHORT).show()
                 }
             }
         )
@@ -121,9 +121,10 @@ class CameraActivity : AppCompatActivity() {
     private fun analyzeWithGemini(base64Image: String) {
         val apiKey = BuildConfig.GEMINI_API_KEY
         val prompt = """
-            You are a travel guide assistant. Analyze this image and identify what you see.
-            Respond ONLY with a valid JSON object in this exact format, no markdown, no extra text:
-            {"name":"place or object name","description":"2-3 sentence description for tourists","fact1":"interesting tourist fact","fact2":"another interesting fact","category":"Monument / Nature / Food / Museum / etc"}
+            Você é um assistente guia de viagem. Analise esta imagem e identifique o que você vê.
+            Responda APENAS com um objeto JSON válido neste formato exato, sem markdown, sem texto extra.
+            Todo o conteúdo dos campos deve estar em português brasileiro:
+            {"name":"nome do lugar ou objeto","description":"descrição de 2-3 frases para turistas","fact1":"curiosidade turística interessante","fact2":"outra curiosidade interessante","category":"Monumento / Natureza / Comida / Museu / etc"}
         """.trimIndent()
 
         val request = GeminiRequest(
@@ -159,7 +160,7 @@ class CameraActivity : AppCompatActivity() {
                         Log.e("Gemini", "Error: ${response.code()} ${response.errorBody()?.string()}")
                         Toast.makeText(
                             this@CameraActivity,
-                            "Analysis failed: ${response.code()}",
+                            "Falha na análise: ${response.code()}",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -169,7 +170,7 @@ class CameraActivity : AppCompatActivity() {
                     progressBar.visibility = View.GONE
                     btnCapture.isEnabled = true
                     Log.e("Gemini", "Exception", e)
-                    Toast.makeText(this@CameraActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@CameraActivity, "Erro: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -186,7 +187,7 @@ class CameraActivity : AppCompatActivity() {
                 .show(supportFragmentManager, "gemini_result")
         } catch (e: Exception) {
             Log.e("Gemini", "Parse error: $jsonText", e)
-            Toast.makeText(this, "Could not parse result", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Não foi possível interpretar o resultado", Toast.LENGTH_SHORT).show()
         }
     }
 
