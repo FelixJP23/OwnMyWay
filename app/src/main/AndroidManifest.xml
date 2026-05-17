@@ -110,13 +110,14 @@
             android:name=".FriendManagerActivity"
             android:exported="false" />
 
-        <activity android:name=".UpdatePasswordActivity" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="ownmyway" android:host="reset-password" />
-            </intent-filter>
+        <activity android:name=".UpdatePasswordActivity"
+            android:exported="true"
+            android:launchMode="singleTop"> <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="ownmyway" android:host="reset-password" />
+        </intent-filter>
         </activity>
         <activity
             android:name=".ManageRoutesActivity"
