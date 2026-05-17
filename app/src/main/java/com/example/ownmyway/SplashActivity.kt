@@ -16,6 +16,9 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
 
@@ -70,6 +73,25 @@ class SplashActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+
+        // 1. Inicializa o cliente do Supabase passando o contexto da aplicação
+        SupabaseClient.init(applicationContext)
+
+        // 2. Verifica assincronamente se o usuário já possui sessão salva
+        lifecycleScope.launch {
+            try {
+                val currentSession = SupabaseClient.client.auth.currentSessionOrNull()
+                if (currentSession != null) {
+                    // Usuário está logado! Vai direto para a MainActivity e encerra a Splash
+                    val intent = Intent(this@SplashActivity, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                    return@launch
+                }
+            } catch (e: Exception) {
+
+            }
+        }
 
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
