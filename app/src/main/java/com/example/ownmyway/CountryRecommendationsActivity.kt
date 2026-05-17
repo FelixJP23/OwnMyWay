@@ -9,6 +9,7 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.chip.Chip
@@ -124,11 +125,47 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             item.findViewById<TextView>(R.id.tvCountryTags).text =
                 "Combina com: ${destination.tags.take(4).joinToString(", ")}"
 
+            item.findViewById<Button>(R.id.btnAddToFavorites).setOnClickListener {
+                addToFavorites(destination.country)
+            }
+
             item.findViewById<Button>(R.id.btnOpenCountry).setOnClickListener {
                 openCountryInAppMap(destination)
             }
 
             recommendationsContainer.addView(item)
+        }
+    }
+
+    private fun addToFavorites(countryName: String) {
+        val userId = try {
+            SupabaseClient.client.auth.currentUserOrNull()?.id
+        } catch (_: Exception) {
+            null
+        }
+
+        if (userId == null) {
+            Toast.makeText(this, "Faça login para salvar favoritos", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val prefs = getSharedPreferences("profile_local_fields", MODE_PRIVATE)
+        val key = "want_to_visit_$userId"
+        val currentText = prefs.getString(key, "").orEmpty()
+
+        val countries = if (currentText.isBlank()) {
+            mutableListOf()
+        } else {
+            currentText.split(",").map { it.trim() }.toMutableList()
+        }
+
+        if (countries.any { it.equals(countryName, ignoreCase = true) }) {
+            Toast.makeText(this, "$countryName já está nos seus favoritos", Toast.LENGTH_SHORT).show()
+        } else {
+            countries.add(countryName)
+            val newText = countries.joinToString(", ")
+            prefs.edit().putString(key, newText).apply()
+            Toast.makeText(this, "$countryName adicionado aos favoritos!", Toast.LENGTH_SHORT).show()
         }
     }
 

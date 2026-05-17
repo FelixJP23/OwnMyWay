@@ -57,7 +57,7 @@
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@android:drawable/ic_menu_sort_by_size"
-                android:tint="#4A2080"
+                app:tint="#4A2080"
                 android:contentDescription="Filter"/>
 
             <EditText

@@ -40,7 +40,7 @@ class LoginActivity : AppCompatActivity() {
             finish()
         }
 
-        // Botão de Login (Removido o parâmetro do CheckBox)
+        // Botão de Login
         findViewById<Button>(R.id.btnLogin).setOnClickListener {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
@@ -77,9 +77,6 @@ class LoginActivity : AppCompatActivity() {
                     this.password = pass
                 }
 
-                // O Supabase já persiste o token localmente por padrão.
-                // Ao entrar aqui, a próxima vez que o app abrir, o 'currentSessionOrNull()' será positivo.
-
                 Toast.makeText(this@LoginActivity, "Bem-vindo!", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                 finish()
@@ -93,6 +90,7 @@ class LoginActivity : AppCompatActivity() {
     private fun resetPassword(email: String) {
         lifecycleScope.launch {
             try {
+                // Sintaxe lambda ajustada para mapear corretamente o redirectTo
                 SupabaseClient.client.auth.resetPasswordForEmail(
                     email = email,
                     redirectUrl = "ownmyway://reset-password"

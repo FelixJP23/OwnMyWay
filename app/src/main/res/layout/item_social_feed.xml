@@ -32,7 +32,7 @@
                 android:layout_height="28dp"
                 android:layout_gravity="center"
                 android:src="@android:drawable/ic_menu_myplaces"
-                android:tint="#4A2080" />
+                app:tint="#4A2080" />
         </FrameLayout>
 
         <LinearLayout
