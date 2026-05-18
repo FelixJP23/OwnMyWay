@@ -53,4 +53,7 @@
     <color name="omw_search_bar_background">#FFFFFF</color>
     <color name="omw_toast_background">#2D1060</color>
     <color name="omw_toast_text">#FFFFFF</color>
+    <color name="omw_budget_good">#2E7D32</color>
+    <color name="omw_budget_equal">#F9A825</color>
+    <color name="omw_budget_over">#C62828</color>
 </resources>
