@@ -48,6 +48,7 @@
     <color name="omw_glass_soft">#22FFFFFF</color>
     <color name="omw_glass_handle">#55FFFFFF</color>
     <color name="omw_shadow">#66000000</color>
+    <color name="omw_place_card_background">#F7FFFFFF</color>
     <color name="omw_glass_card">#30FFFFFF</color>
     <color name="omw_bottom_nav_background">#FFFFFF</color>
     <color name="omw_search_bar_background">#FFFFFF</color>

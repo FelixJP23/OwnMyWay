@@ -127,7 +127,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/omw_surface_variant"
+                        android:textColor="@color/omw_text_primary"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
@@ -149,7 +149,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:textColor="@color/omw_text_hint"
+                    android:textColor="@color/omw_text_secondary"
                     android:textSize="13sp" />
 
                 <!-- Row 3: price (left) + CTA button (right) -->
@@ -166,7 +166,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/omw_surface_variant"
+                        android:textColor="@color/omw_text_primary"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -181,7 +181,7 @@
                         android:stateListAnimator="@null"
                         android:text="Ir até lá  →"
                         android:textAllCaps="false"
-                        android:textColor="@android:color/white"
+                        android:textColor="@android:color/black"
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
