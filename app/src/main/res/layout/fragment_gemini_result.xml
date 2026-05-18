@@ -17,7 +17,7 @@
             android:layout_height="4dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="20dp"
-            android:background="#CCCCCC"/>
+            android:background="@color/omw_divider"/>
 
         <TextView
             android:id="@+id/tvCategory"
@@ -27,7 +27,7 @@
             android:background="@drawable/bg_category_badge"
             android:paddingHorizontal="12dp"
             android:paddingVertical="4dp"
-            android:textColor="#4A2080"
+            android:textColor="@color/omw_purple_main"
             android:textSize="12sp"
             android:fontFamily="sans-serif-medium"/>
 
@@ -36,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:textColor="#1A1A1A"
+            android:textColor="@color/omw_text_primary"
             android:textSize="24sp"
             android:fontFamily="sans-serif-medium"
             android:textStyle="bold"/>
@@ -46,7 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            android:textColor="#555555"
+            android:textColor="@color/omw_text_secondary"
             android:textSize="15sp"
             android:lineSpacingExtra="4dp"/>
 
@@ -54,14 +54,14 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginBottom="16dp"
-            android:background="#F0F0F0"/>
+            android:background="@color/omw_surface_variant"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             android:text="Interesting Facts"
-            android:textColor="#4A2080"
+            android:textColor="@color/omw_purple_main"
             android:textSize="14sp"
             android:fontFamily="sans-serif-medium"
             android:textAllCaps="true"
@@ -72,7 +72,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:textColor="#333333"
+            android:textColor="@color/omw_text_secondary"
             android:textSize="14sp"
             android:lineSpacingExtra="3dp"/>
 
@@ -80,7 +80,7 @@
             android:id="@+id/tvFact2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#333333"
+            android:textColor="@color/omw_text_secondary"
             android:textSize="14sp"
             android:lineSpacingExtra="3dp"/>
 

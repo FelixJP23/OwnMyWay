@@ -38,7 +38,7 @@
             android:layout_marginTop="10dp"
             android:lineSpacingExtra="3dp"
             android:text="Procure destinos que combinam com você e descubra países alinhados aos seus gostos, ritmo e estilo de viagem."
-            android:textColor="#5F5A66"
+            android:textColor="@color/omw_text_secondary"
             android:textSize="15sp" />
 
         <Button
@@ -63,7 +63,7 @@
             android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
             android:text="Agora não"
-            android:textColor="#7A6B8F"
+            android:textColor="@color/omw_text_muted"
             android:textSize="15sp" />
 
     </LinearLayout>

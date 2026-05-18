@@ -7,7 +7,7 @@
     android:layout_marginVertical="8dp"
     app:cardCornerRadius="20dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="#FFFFFF">
+    app:cardBackgroundColor="@color/omw_surface">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,7 +24,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/profile_photo_bg"
-                android:backgroundTint="#F0E8FF" />
+                android:backgroundTint="@color/omw_input_background_alt" />
 
             <ImageView
                 android:id="@+id/ivFriendProfile"
@@ -32,7 +32,7 @@
                 android:layout_height="28dp"
                 android:layout_gravity="center"
                 android:src="@android:drawable/ic_menu_myplaces"
-                app:tint="#4A2080" />
+                app:tint="@color/omw_purple_main" />
         </FrameLayout>
 
         <LinearLayout
@@ -47,7 +47,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Nome do Amigo"
-                android:textColor="#2D1060"
+                android:textColor="@color/omw_purple_mid"
                 android:textStyle="bold"
                 android:textSize="16sp" />
 
@@ -56,7 +56,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="está planejando uma viagem para"
-                android:textColor="#666666"
+                android:textColor="@color/omw_text_muted"
                 android:textSize="13sp"
                 android:layout_marginTop="2dp" />
 
@@ -65,7 +65,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Paris, França"
-                android:textColor="#4A2080"
+                android:textColor="@color/omw_purple_main"
                 android:textStyle="bold"
                 android:textSize="14sp"
                 android:layout_marginTop="2dp" />
@@ -77,7 +77,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="2h"
-            android:textColor="#999999"
+            android:textColor="@color/omw_text_hint"
             android:textSize="11sp"
             android:layout_gravity="top" />
 

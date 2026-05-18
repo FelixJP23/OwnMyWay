@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.gson.Gson
@@ -45,14 +46,25 @@ class CreateRouteActivity : AppCompatActivity() {
     private val okHttpClient = OkHttpClient()
     private val gson         = Gson()
 
-    private val chipBgColors = ColorStateList(
-        arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
-        intArrayOf(Color.parseColor("#4A2080"), Color.parseColor("#F0E8FF"))
-    )
-    private val chipTextColors = ColorStateList(
-        arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
-        intArrayOf(Color.WHITE, Color.parseColor("#4A2080"))
-    )
+    private val chipBgColors by lazy {
+        ColorStateList(
+            arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+            intArrayOf(
+                ContextCompat.getColor(this@CreateRouteActivity, R.color.omw_purple_main),
+                ContextCompat.getColor(this@CreateRouteActivity, R.color.omw_input_background_alt)
+            )
+        )
+    }
+
+    private val chipTextColors by lazy {
+        ColorStateList(
+            arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+            intArrayOf(
+                ContextCompat.getColor(this@CreateRouteActivity, R.color.omw_on_primary),
+                ContextCompat.getColor(this@CreateRouteActivity, R.color.omw_purple_main)
+            )
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,19 +124,19 @@ class CreateRouteActivity : AppCompatActivity() {
                     btnAddPlace.isEnabled = true
                     if (results.isEmpty()) {
                         tvSearchStatus.text = "❌ Lugar não encontrado. Tente outro nome."
-                        tvSearchStatus.setTextColor(Color.parseColor("#C62828"))
+                        tvSearchStatus.setTextColor(ContextCompat.getColor(this@CreateRouteActivity, R.color.omw_danger))
                     } else {
                         val place = results.first()
                         // Check not already added
                         if (resolvedPlaces.any { it.place_id == place.place_id }) {
                             tvSearchStatus.text = "⚠️ \"${place.name}\" já foi adicionado."
-                            tvSearchStatus.setTextColor(Color.parseColor("#E65100"))
+                            tvSearchStatus.setTextColor(ContextCompat.getColor(this@CreateRouteActivity, R.color.omw_purple_accent))
                         } else {
                             resolvedPlaces.add(place)
                             addSpecificChip(place)
                             etSpecificPlace.setText("")
                             tvSearchStatus.text = "✅ \"${place.name}\" adicionado à sua rota!"
-                            tvSearchStatus.setTextColor(Color.parseColor("#2E7D32"))
+                            tvSearchStatus.setTextColor(ContextCompat.getColor(this@CreateRouteActivity, R.color.omw_success))
                         }
                     }
                 }
@@ -132,7 +144,7 @@ class CreateRouteActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     btnAddPlace.isEnabled = true
                     tvSearchStatus.text = "❌ Erro na busca. Verifique sua conexão."
-                    tvSearchStatus.setTextColor(Color.parseColor("#C62828"))
+                    tvSearchStatus.setTextColor(ContextCompat.getColor(this@CreateRouteActivity, R.color.omw_danger))
                 }
             }
         }
@@ -146,8 +158,8 @@ class CreateRouteActivity : AppCompatActivity() {
         val chip = Chip(this).apply {
             text = displayName
             isCloseIconVisible = true
-            chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#F0E8FF"))
-            setTextColor(Color.parseColor("#4A2080"))
+            chipBackgroundColor = ColorStateList.valueOf(ContextCompat.getColor(this@CreateRouteActivity, R.color.omw_input_background_alt))
+            setTextColor(ContextCompat.getColor(this@CreateRouteActivity, R.color.omw_purple_main))
             chipStrokeWidth = 0f
             setOnCloseIconClickListener {
                 resolvedPlaces.remove(place)

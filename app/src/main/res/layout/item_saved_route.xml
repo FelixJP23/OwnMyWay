@@ -35,7 +35,7 @@
                 android:id="@+id/tvRouteName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#1A1A1A"
+                android:textColor="@color/omw_text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
@@ -45,7 +45,7 @@
                 android:id="@+id/tvRouteDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#777777"
+                android:textColor="@color/omw_text_muted"
                 android:textSize="13sp"
                 android:maxLines="2"
                 android:ellipsize="end"
@@ -62,7 +62,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textColor="#4A2080"
+                    android:textColor="@color/omw_purple_main"
                     android:textSize="12sp"
                     android:fontFamily="sans-serif-medium"/>
 
@@ -70,7 +70,7 @@
                     android:id="@+id/tvRouteDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#AAAAAA"
+                    android:textColor="@color/omw_text_hint"
                     android:textSize="11sp"
                     android:layout_marginStart="8dp"/>
 
@@ -86,7 +86,7 @@
             android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_delete"
-            app:tint="#CCCCCC"
+            app:tint="@color/omw_divider"
             android:contentDescription="Excluir rota"/>
 
     </LinearLayout>

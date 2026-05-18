@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="Selecione as experiências que fazem seus olhos brilharem."
-        android:textColor="#666666" />
+        android:textColor="@color/omw_text_muted" />
 
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/chipGroupInterests"

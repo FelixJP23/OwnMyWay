@@ -30,6 +30,7 @@ class ProfileActivity : AppCompatActivity() {
 
     private lateinit var ivProfile: ImageView
     private lateinit var btnEditPhoto: ImageView
+    private lateinit var btnSettings: ImageView
     private lateinit var etName: EditText
     private lateinit var etUsername: EditText
     private lateinit var etBio: EditText
@@ -84,6 +85,7 @@ class ProfileActivity : AppCompatActivity() {
     private fun bindViews() {
         ivProfile = findViewById(R.id.ivProfile)
         btnEditPhoto = findViewById(R.id.btnEditPhoto)
+        btnSettings = findViewById(R.id.btnSettings)
         etName = findViewById(R.id.etName)
         etUsername = findViewById(R.id.etUsername)
         etBio = findViewById(R.id.etBio)
@@ -106,6 +108,7 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnEditPhoto.setOnClickListener { openGallery() }
+        btnSettings.setOnClickListener { showThemeDialog() }
         btnAddStyle.setOnClickListener { showAddStyleDialog() }
         btnSaveIdentity.setOnClickListener { saveProfile() }
         btnCancel.setOnClickListener { finish() }
@@ -379,6 +382,32 @@ class ProfileActivity : AppCompatActivity() {
             }
             chipGroupStyles.addView(chip)
         }
+    }
+
+
+    private fun showThemeDialog() {
+        val options = arrayOf("Claro", "Escuro", "Sistema")
+        val currentMode = ThemeManager.getSavedTheme(this)
+        val selectedIndex = when (currentMode) {
+            ThemeManager.MODE_LIGHT -> 0
+            ThemeManager.MODE_DARK -> 1
+            else -> 2
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Aparência")
+            .setSingleChoiceItems(options, selectedIndex) { dialog, which ->
+                val selectedMode = when (which) {
+                    0 -> ThemeManager.MODE_LIGHT
+                    1 -> ThemeManager.MODE_DARK
+                    else -> ThemeManager.MODE_SYSTEM
+                }
+                ThemeManager.saveAndApplyTheme(this, selectedMode)
+                dialog.dismiss()
+                recreate()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun showAddStyleDialog() {

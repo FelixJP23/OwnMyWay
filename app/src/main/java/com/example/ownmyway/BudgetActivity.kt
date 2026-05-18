@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.ownmyway.model.BudgetTransaction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -180,8 +181,8 @@ class BudgetActivity : AppCompatActivity() {
             
             // Cor: roxo se positivo, vermelho se negativo no mês
             bars[index].setBackgroundColor(
-                if (value >= 0) android.graphics.Color.parseColor("#4A2080")
-                else android.graphics.Color.parseColor("#FF5252")
+                if (value >= 0) ContextCompat.getColor(this@BudgetActivity, R.color.omw_purple_main)
+                else ContextCompat.getColor(this@BudgetActivity, R.color.omw_danger)
             )
         }
     }

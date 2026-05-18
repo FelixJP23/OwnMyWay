@@ -2,12 +2,15 @@ package com.example.ownmyway
 
 import android.content.Intent
 import android.os.Bundle
+import android.graphics.drawable.GradientDrawable
+import android.view.Gravity
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputEditText
 import io.github.jan.supabase.auth.auth
@@ -77,13 +80,36 @@ class LoginActivity : AppCompatActivity() {
                     this.password = pass
                 }
 
-                Toast.makeText(this@LoginActivity, "Bem-vindo!", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                val mainIntent = Intent(this@LoginActivity, MainActivity::class.java).apply {
+                    putExtra(MainActivity.EXTRA_SHOW_WELCOME_MESSAGE, true)
+                }
+                startActivity(mainIntent)
                 finish()
             } catch (e: Exception) {
                 Log.e("LoginError", "Erro: ${e.message}")
                 Toast.makeText(this@LoginActivity, "Falha no login: Senha ou e-mail incorretos", Toast.LENGTH_LONG).show()
             }
+        }
+    }
+
+    private fun showWelcomeToast() {
+        val toastText = TextView(this).apply {
+            text = "Bem-vindo!"
+            setTextColor(ContextCompat.getColor(this@LoginActivity, R.color.omw_toast_text))
+            textSize = 15f
+            gravity = Gravity.CENTER
+            setPadding(32, 18, 32, 18)
+            background = GradientDrawable().apply {
+                cornerRadius = 32f
+                setColor(ContextCompat.getColor(this@LoginActivity, R.color.omw_toast_background))
+            }
+        }
+
+        Toast(this).apply {
+            duration = Toast.LENGTH_SHORT
+            setGravity(Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, 120)
+            view = toastText
+            show()
         }
     }
 

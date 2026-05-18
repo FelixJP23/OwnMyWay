@@ -4,9 +4,9 @@
      and generous rounded corners. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#E61A1A1A" />
+    <solid android:color="@color/omw_overlay" />
     <corners android:radius="24dp" />
     <stroke
         android:width="0.5dp"
-        android:color="#30FFFFFF" />
+        android:color="@color/omw_glass_card" />
 </shape>

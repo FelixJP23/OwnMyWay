@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -82,11 +83,11 @@ class FriendManagerActivity : AppCompatActivity() {
         buttons.forEachIndexed { index, button ->
             val isSelected = (index + 1) == activePage
             if (isSelected) {
-                button.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4A2080"))
-                button.setTextColor(Color.WHITE)
+                button.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this@FriendManagerActivity, R.color.omw_purple_main))
+                button.setTextColor(ContextCompat.getColor(this@FriendManagerActivity, R.color.omw_on_primary))
             } else {
                 button.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
-                button.setTextColor(Color.parseColor("#4A2080"))
+                button.setTextColor(ContextCompat.getColor(this@FriendManagerActivity, R.color.omw_purple_main))
             }
         }
     }

@@ -11,6 +11,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -78,9 +79,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
                 text = label
                 isCheckable = false
                 isClickable = false
-                chipBackgroundColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#F3EBFB"))
-                setTextColor(Color.parseColor("#4A2080"))
-                chipStrokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#D7C5F0"))
+                chipBackgroundColor = android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this@CountryRecommendationsActivity, R.color.omw_input_background))
+                setTextColor(ContextCompat.getColor(this@CountryRecommendationsActivity, R.color.omw_purple_main))
+                chipStrokeColor = android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this@CountryRecommendationsActivity, R.color.omw_avatar_ring))
                 chipStrokeWidth = 1f
                 textSize = 13f
             })

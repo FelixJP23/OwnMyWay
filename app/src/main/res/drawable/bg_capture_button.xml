@@ -2,7 +2,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="oval">
-            <solid android:color="#FFFFFF"/>
+            <solid android:color="@color/omw_surface"/>
         </shape>
     </item>
     <item
@@ -11,10 +11,10 @@
         android:right="4dp"
         android:bottom="4dp">
         <shape android:shape="oval">
-            <solid android:color="#FFFFFF"/>
+            <solid android:color="@color/omw_surface"/>
             <stroke
                 android:width="2dp"
-                android:color="#4A2080"/>
+                android:color="@color/omw_purple_main"/>
         </shape>
     </item>
 </layer-list>

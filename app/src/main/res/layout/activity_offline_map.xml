@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1A1A2E">
+    android:background="@color/omw_text_primary">
 
     <!-- Map image (zoomable/pannable) -->
     <ImageView
@@ -12,7 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:scaleType="matrix"
-        android:background="#242f3e"
+        android:background="@color/omw_text_secondary"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -23,7 +23,7 @@
         android:id="@+id/topBarOffline"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#CC1A1A2E"
+        android:background="@color/omw_overlay"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingTop="48dp"
@@ -62,7 +62,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=""
-                android:textColor="#D4B8F0"
+                android:textColor="@color/omw_tagline"
                 android:textSize="12sp"
                 android:visibility="gone"/>
 
@@ -89,7 +89,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             android:text="📥 Downloading map tiles..."
-            android:textColor="#4A2080"
+            android:textColor="@color/omw_purple_main"
             android:textSize="14sp"
             android:fontFamily="sans-serif-medium"/>
 
@@ -98,15 +98,15 @@
             style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="240dp"
             android:layout_height="wrap_content"
-            android:progressTint="#4A2080"
-            android:progressBackgroundTint="#D4B8F0"/>
+            android:progressTint="@color/omw_purple_main"
+            android:progressBackgroundTint="@color/omw_tagline"/>
 
         <TextView
             android:id="@+id/tvOfflineProgress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="#4A2080"
+            android:textColor="@color/omw_purple_main"
             android:textSize="13sp"/>
 
     </LinearLayout>

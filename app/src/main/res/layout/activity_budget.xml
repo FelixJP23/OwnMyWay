@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="@color/omw_surface">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarBudget"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/omw_surface"
         app:elevation="0dp"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -18,14 +18,14 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="Meu Budget"
-            app:titleTextColor="#4A2080"
+            app:titleTextColor="@color/omw_purple_main"
             app:navigationIcon="@android:drawable/ic_menu_revert"
-            app:navigationIconTint="#4A2080" />
+            app:navigationIconTint="@color/omw_purple_main" />
             
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#F0E8FF" />
+            android:background="@color/omw_input_background_alt" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="6dp"
-                app:cardBackgroundColor="#4A2080">
+                app:cardBackgroundColor="@color/omw_purple_main">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -59,7 +59,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Cofrinho de Viagem"
-                        android:textColor="#CCFFFFFF"
+                        android:textColor="@color/omw_overlay"
                         android:textSize="14sp"
                         android:textAllCaps="true"
                         android:letterSpacing="0.1" />
@@ -69,7 +69,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="R$ 1.250,00"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/omw_on_primary"
                         android:textSize="38sp"
                         android:textStyle="bold"
                         android:layout_marginTop="8dp" />
@@ -83,7 +83,7 @@
                 android:layout_marginTop="20dp"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#F7F5FF">
+                app:cardBackgroundColor="@color/omw_surface_soft">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -95,7 +95,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Adicionar ou Retirar"
-                        android:textColor="#4A2080"
+                        android:textColor="@color/omw_purple_main"
                         android:textStyle="bold"
                         android:textSize="15sp"
                         android:layout_marginBottom="12dp"/>
@@ -105,8 +105,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="54dp"
                         android:hint="Valor (R$)"
-                        android:textColor="#4A2080"
-                        android:textColorHint="#884A2080"
+                        android:textColor="@color/omw_purple_main"
+                        android:textColorHint="@color/omw_overlay_purple"
                         android:inputType="numberDecimal"
                         android:background="@drawable/bg_input_field"
                         android:paddingHorizontal="16dp"
@@ -126,7 +126,7 @@
                             android:text="Guardar"
                             android:textAllCaps="false"
                             android:textStyle="bold"
-                            android:backgroundTint="#4A2080"
+                            android:backgroundTint="@color/omw_purple_main"
                             app:cornerRadius="14dp" />
 
                         <Button
@@ -138,8 +138,8 @@
                             android:text="Retirar"
                             android:textAllCaps="false"
                             android:textStyle="bold"
-                            android:textColor="#4A2080"
-                            android:backgroundTint="#FFFFFF"
+                            android:textColor="@color/omw_purple_main"
+                            android:backgroundTint="@color/omw_surface"
                             app:cornerRadius="14dp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -158,13 +158,13 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:padding="16dp"
-                    android:background="#F0E8FF">
+                    android:background="@color/omw_input_background_alt">
 
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@android:drawable/ic_dialog_info"
-                        app:tint="#4A2080" />
+                        app:tint="@color/omw_purple_main" />
 
                     <TextView
                         android:id="@+id/tvProjectionPlaceholder"
@@ -172,7 +172,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:text="Ao poupar este valor, você atingirá sua meta de viagem em breve!"
-                        android:textColor="#4A2080"
+                        android:textColor="@color/omw_purple_main"
                         android:textStyle="italic"
                         android:textSize="13sp" />
                 </LinearLayout>
@@ -185,7 +185,7 @@
                 android:layout_marginTop="16dp"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#F7F5FF">
+                app:cardBackgroundColor="@color/omw_surface_soft">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -205,7 +205,7 @@
                             android:layout_weight="1"
                             android:text="Evolução Mensal"
                             android:textStyle="bold"
-                            android:textColor="#4A2080"
+                            android:textColor="@color/omw_purple_main"
                             android:textSize="15sp"/>
                             
                         <ImageButton
@@ -214,7 +214,7 @@
                             android:layout_height="36dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@android:drawable/ic_menu_agenda"
-                            app:tint="#4A2080"
+                            app:tint="@color/omw_purple_main"
                             android:contentDescription="Relatório"/>
                     </LinearLayout>
 
@@ -225,12 +225,12 @@
                         android:gravity="bottom"
                         android:orientation="horizontal">
 
-                        <View android:id="@+id/bar1" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="#D1C4E9" />
-                        <View android:id="@+id/bar2" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="#B39DDB" />
-                        <View android:id="@+id/bar3" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="#9575CD" />
-                        <View android:id="@+id/bar4" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="#7E57C2" />
-                        <View android:id="@+id/bar5" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="#673AB7" />
-                        <View android:id="@+id/bar6" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="#4A2080" />
+                        <View android:id="@+id/bar1" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="@color/omw_purple_accent_soft" />
+                        <View android:id="@+id/bar2" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="@color/omw_track" />
+                        <View android:id="@+id/bar3" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="@color/omw_purple_light" />
+                        <View android:id="@+id/bar4" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="@color/omw_purple_accent" />
+                        <View android:id="@+id/bar5" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="@color/omw_purple_accent" />
+                        <View android:id="@+id/bar6" android:layout_width="0dp" android:layout_height="10dp" android:layout_weight="1" android:layout_marginHorizontal="6dp" android:background="@color/omw_purple_main" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -238,12 +238,12 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:orientation="horizontal">
-                        <TextView android:id="@+id/tvMonth1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="#4A2080"/>
-                        <TextView android:id="@+id/tvMonth2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="#4A2080"/>
-                        <TextView android:id="@+id/tvMonth3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="#4A2080"/>
-                        <TextView android:id="@+id/tvMonth4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="#4A2080"/>
-                        <TextView android:id="@+id/tvMonth5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="#4A2080"/>
-                        <TextView android:id="@+id/tvMonth6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="#4A2080"/>
+                        <TextView android:id="@+id/tvMonth1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="@color/omw_purple_main"/>
+                        <TextView android:id="@+id/tvMonth2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="@color/omw_purple_main"/>
+                        <TextView android:id="@+id/tvMonth3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="@color/omw_purple_main"/>
+                        <TextView android:id="@+id/tvMonth4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="@color/omw_purple_main"/>
+                        <TextView android:id="@+id/tvMonth5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="@color/omw_purple_main"/>
+                        <TextView android:id="@+id/tvMonth6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="-" android:gravity="center" android:textSize="10sp" android:textColor="@color/omw_purple_main"/>
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -255,9 +255,9 @@
         android:id="@+id/bottom_navigation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        app:itemIconTint="@color/omw_purple_main"
-        app:itemTextColor="@color/omw_purple_main"
+        android:background="@color/omw_bottom_nav_background"
+        app:itemIconTint="@color/bottom_nav_item_color"
+        app:itemTextColor="@color/bottom_nav_item_color"
         app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

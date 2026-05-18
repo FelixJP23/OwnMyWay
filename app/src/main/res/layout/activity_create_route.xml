@@ -4,14 +4,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F7F5FF">
+    android:background="@color/omw_surface_soft">
 
     <!-- Header -->
     <LinearLayout
         android:id="@+id/headerRoute"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#4A2080"
+        android:background="@color/omw_purple_main"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingTop="48dp"
@@ -50,7 +50,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="O que você quer fazer hoje?"
-                android:textColor="#D4B8F0"
+                android:textColor="@color/omw_tagline"
                 android:textSize="13sp"/>
 
         </LinearLayout>
@@ -93,7 +93,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="📍 Lugares específicos"
-                        android:textColor="#4A2080"
+                        android:textColor="@color/omw_purple_main"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp"/>
@@ -102,7 +102,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Há lugares específicos que você quer visitar? (opcional)"
-                        android:textColor="#888888"
+                        android:textColor="@color/omw_text_muted"
                         android:textSize="12sp"
                         android:layout_marginBottom="12dp"/>
 
@@ -173,7 +173,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="🌅 Café da manhã"
-                        android:textColor="#4A2080"
+                        android:textColor="@color/omw_purple_main"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp"/>
@@ -182,7 +182,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Você vai tomar café da manhã no hotel?"
-                        android:textColor="#555555"
+                        android:textColor="@color/omw_text_secondary"
                         android:textSize="14sp"
                         android:layout_marginBottom="8dp"/>
 
@@ -198,8 +198,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Sim, no hotel"
-                            android:buttonTint="#4A2080"
-                            android:textColor="#333333"/>
+                            android:buttonTint="@color/omw_purple_main"
+                            android:textColor="@color/omw_text_secondary"/>
 
                         <RadioButton
                             android:id="@+id/rbBreakfastNo"
@@ -207,8 +207,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Não, sugira um café"
-                            android:buttonTint="#4A2080"
-                            android:textColor="#333333"
+                            android:buttonTint="@color/omw_purple_main"
+                            android:textColor="@color/omw_text_secondary"
                             android:checked="true"/>
 
                     </RadioGroup>
@@ -234,7 +234,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="🍽️ Almoço"
-                        android:textColor="#4A2080"
+                        android:textColor="@color/omw_purple_main"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp"/>
@@ -243,7 +243,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Quer uma sugestão de restaurante às 11:00?"
-                        android:textColor="#555555"
+                        android:textColor="@color/omw_text_secondary"
                         android:textSize="14sp"
                         android:layout_marginBottom="8dp"/>
 
@@ -259,8 +259,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Sim, por favor!"
-                            android:buttonTint="#4A2080"
-                            android:textColor="#333333"/>
+                            android:buttonTint="@color/omw_purple_main"
+                            android:textColor="@color/omw_text_secondary"/>
 
                         <RadioButton
                             android:id="@+id/rbLunchNo"
@@ -268,8 +268,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Não, obrigado"
-                            android:buttonTint="#4A2080"
-                            android:textColor="#333333"
+                            android:buttonTint="@color/omw_purple_main"
+                            android:textColor="@color/omw_text_secondary"
                             android:checked="true"/>
 
                     </RadioGroup>
@@ -295,7 +295,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="🌙 Jantar"
-                        android:textColor="#4A2080"
+                        android:textColor="@color/omw_purple_main"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp"/>
@@ -304,7 +304,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Quer uma sugestão de restaurante às 19:00?"
-                        android:textColor="#555555"
+                        android:textColor="@color/omw_text_secondary"
                         android:textSize="14sp"
                         android:layout_marginBottom="8dp"/>
 
@@ -320,8 +320,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Sim, por favor!"
-                            android:buttonTint="#4A2080"
-                            android:textColor="#333333"/>
+                            android:buttonTint="@color/omw_purple_main"
+                            android:textColor="@color/omw_text_secondary"/>
 
                         <RadioButton
                             android:id="@+id/rbDinnerNo"
@@ -329,8 +329,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Não, obrigado"
-                            android:buttonTint="#4A2080"
-                            android:textColor="#333333"
+                            android:buttonTint="@color/omw_purple_main"
+                            android:textColor="@color/omw_text_secondary"
                             android:checked="true"/>
 
                     </RadioGroup>
@@ -356,7 +356,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="🎯 Seus hobbies"
-                        android:textColor="#4A2080"
+                        android:textColor="@color/omw_purple_main"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp"/>
@@ -365,7 +365,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Vamos priorizar lugares que combinam com seus interesses"
-                        android:textColor="#888888"
+                        android:textColor="@color/omw_text_muted"
                         android:textSize="12sp"
                         android:layout_marginBottom="12dp"/>
 
@@ -389,7 +389,7 @@
         android:layout_marginBottom="24dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:cardBackgroundColor="#4A2080"
+        app:cardBackgroundColor="@color/omw_purple_main"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">

@@ -8,8 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-
-    <!-- Own My Way splash palette -->
+    <!-- Own My Way brand palette -->
     <color name="omw_purple_dark">#0F0626</color>
     <color name="omw_purple_mid">#2D1060</color>
     <color name="omw_purple_main">#4A2080</color>
@@ -17,5 +16,41 @@
     <color name="omw_tagline">#D4B8F0</color>
     <color name="omw_white">#FFFFFF</color>
 
-
+    <!-- Theme-aware app colors -->
+    <color name="omw_background">#F6F3FA</color>
+    <color name="omw_surface">#FFFFFF</color>
+    <color name="omw_surface_variant">#ECE7F4</color>
+    <color name="omw_surface_soft">#F7F5FF</color>
+    <color name="omw_card">#FFFFFF</color>
+    <color name="omw_input_background">#F3EBFB</color>
+    <color name="omw_input_background_alt">#F0E8FF</color>
+    <color name="omw_text_primary">#1F2140</color>
+    <color name="omw_text_secondary">#353752</color>
+    <color name="omw_text_muted">#7D8094</color>
+    <color name="omw_text_hint">#8E90A5</color>
+    <color name="omw_border">#E0E0E0</color>
+    <color name="omw_divider">#CCCCCC</color>
+    <color name="omw_on_primary">#FFFFFF</color>
+    <color name="omw_avatar_ring">#DCCDF6</color>
+    <color name="omw_avatar_inner">#40506A</color>
+    <color name="omw_success">#4CAF50</color>
+    <color name="omw_danger">#B03A48</color>
+    <color name="omw_overlay">#CCFFFFFF</color>
+    <color name="omw_transparent">#00000000</color>
+    <color name="omw_purple_accent">#7E57C2</color>
+    <color name="omw_purple_accent_soft">#D1C4E9</color>
+    <color name="omw_scrim">#99000000</color>
+    <color name="omw_floating_surface">#FDFBFF</color>
+    <color name="omw_track">#B39DDB</color>
+    <color name="omw_overlay_purple">#884A2080</color>
+    <color name="omw_transparent_black">#00000000</color>
+    <color name="omw_glass_border">#44FFFFFF</color>
+    <color name="omw_glass_soft">#22FFFFFF</color>
+    <color name="omw_glass_handle">#55FFFFFF</color>
+    <color name="omw_shadow">#66000000</color>
+    <color name="omw_glass_card">#30FFFFFF</color>
+    <color name="omw_bottom_nav_background">#FFFFFF</color>
+    <color name="omw_search_bar_background">#FFFFFF</color>
+    <color name="omw_toast_background">#2D1060</color>
+    <color name="omw_toast_text">#FFFFFF</color>
 </resources>
