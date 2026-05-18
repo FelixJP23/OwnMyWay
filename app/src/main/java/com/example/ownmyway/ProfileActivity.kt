@@ -294,8 +294,14 @@ class ProfileActivity : AppCompatActivity() {
             .setPositiveButton("Sair") { _, _ ->
                 lifecycleScope.launch {
                     try {
+                        // 1. O signOut invalida o token no servidor e aciona o deleteSession() do SharedPreferences
                         SupabaseClient.client.auth.signOut()
+
+                        Toast.makeText(this@ProfileActivity, "Logout realizado com sucesso!", Toast.LENGTH_SHORT).show()
+
+                        // 2. ALTERAÇÃO DE LOGÍSTICA: Redireciona para a SplashActivity
                         val intent = Intent(this@ProfileActivity, SplashActivity::class.java).apply {
+                            // Limpa todo o histórico de telas anteriores da memória (inclusive a MainActivity de onde você veio)
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         }
                         startActivity(intent)
@@ -303,7 +309,7 @@ class ProfileActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         Toast.makeText(
                             this@ProfileActivity,
-                            "Erro ao sair da conta",
+                            "Erro ao sair da conta: ${e.localizedMessage}",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -312,7 +318,6 @@ class ProfileActivity : AppCompatActivity() {
             .setNegativeButton("Cancelar", null)
             .show()
     }
-
     private fun loadLocalTravelTexts(userId: String) {
         etVisitedPlaces.setText(localProfilePrefs.getString("visited_places_$userId", "").orEmpty())
         etWantToVisit.setText(localProfilePrefs.getString("want_to_visit_$userId", "").orEmpty())
