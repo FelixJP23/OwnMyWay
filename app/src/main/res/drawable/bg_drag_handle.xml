@@ -2,6 +2,6 @@
 <!-- Small rounded drag handle centered above the glass card. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#55FFFFFF" />
+    <solid android:color="@color/omw_glass_handle" />
     <corners android:radius="100dp" />
 </shape>

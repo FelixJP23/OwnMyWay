@@ -17,7 +17,7 @@
         <layer-list>
             <item android:gravity="center">
                 <shape android:shape="oval">
-                    <solid android:color="#55FFFFFF" />
+                    <solid android:color="@color/omw_glass_handle" />
                     <size android:width="6dp" android:height="6dp" />
                 </shape>
             </item>

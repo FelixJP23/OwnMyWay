@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#F8F4FF"> <androidx.constraintlayout.widget.ConstraintLayout
+    android:background="@color/omw_surface_soft"> <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="24dp"
@@ -19,7 +19,7 @@
         android:src="@drawable/ic_arrow_back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="#4A2080" />
+        app:tint="@color/omw_purple_main" />
 
     <TextView
         android:id="@+id/tvLoginTitle"
@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:text="Bem-vindo de volta!"
-        android:textColor="#4A2080"
+        android:textColor="@color/omw_purple_main"
         android:textSize="28sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -40,8 +40,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:hint="E-mail"
-        app:boxBackgroundColor="#FFFFFF"
-        app:hintTextColor="#4A2080"
+        app:boxBackgroundColor="@color/omw_surface"
+        app:hintTextColor="@color/omw_purple_main"
         app:layout_constraintTop_toBottomOf="@id/tvLoginTitle">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -49,7 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
-            android:textColor="#4A2080" /> </com.google.android.material.textfield.TextInputLayout>
+            android:textColor="@color/omw_purple_main" /> </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilPassword"
@@ -58,9 +58,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Senha"
-        app:boxBackgroundColor="#FFFFFF"
+        app:boxBackgroundColor="@color/omw_surface"
         app:endIconMode="password_toggle"
-        app:hintTextColor="#4A2080"
+        app:hintTextColor="@color/omw_purple_main"
         app:layout_constraintTop_toBottomOf="@id/tilEmail">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -68,7 +68,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:textColor="#4A2080" /> </com.google.android.material.textfield.TextInputLayout>
+            android:textColor="@color/omw_purple_main" /> </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:id="@+id/tvForgotPassword"
@@ -77,7 +77,7 @@
         android:layout_marginTop="8dp"
         android:padding="8dp"
         android:text="Esqueci minha senha"
-        android:textColor="#4A2080"
+        android:textColor="@color/omw_purple_main"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tilPassword" />
@@ -89,8 +89,8 @@
         android:layout_height="56dp"
         android:layout_marginTop="32dp"
         android:text="Entrar"
-        android:backgroundTint="#4A2080"
-        android:textColor="#FFFFFF"
+        android:backgroundTint="@color/omw_purple_main"
+        android:textColor="@color/omw_on_primary"
         app:cornerRadius="12dp"
         app:layout_constraintTop_toBottomOf="@id/tvForgotPassword" />
 
@@ -100,7 +100,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Não tem uma conta? Cadastre-se"
-        android:textColor="#666666"
+        android:textColor="@color/omw_text_muted"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btnLogin" />

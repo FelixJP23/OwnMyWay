@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FFBB86FC</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF03DAC5</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Own My Way brand palette adjusted for dark mode -->
+    <color name="omw_purple_dark">#080311</color>
+    <color name="omw_purple_mid">#CBB3FF</color>
+    <color name="omw_purple_main">#B98CFF</color>
+    <color name="omw_purple_light">#D7C2FF</color>
+    <color name="omw_tagline">#E9DFFF</color>
+    <color name="omw_white">#FFFFFF</color>
+
+    <!-- Theme-aware app colors -->
+    <color name="omw_background">#12101A</color>
+    <color name="omw_surface">#1E1A2A</color>
+    <color name="omw_surface_variant">#2A2438</color>
+    <color name="omw_surface_soft">#241F31</color>
+    <color name="omw_card">#1E1A2A</color>
+    <color name="omw_input_background">#2A2438</color>
+    <color name="omw_input_background_alt">#302740</color>
+    <color name="omw_text_primary">#F6F0FF</color>
+    <color name="omw_text_secondary">#E5DDF1</color>
+    <color name="omw_text_muted">#B8AEC8</color>
+    <color name="omw_text_hint">#9488A6</color>
+    <color name="omw_border">#3B324D</color>
+    <color name="omw_divider">#4A405E</color>
+    <color name="omw_on_primary">#FFFFFF</color>
+    <color name="omw_avatar_ring">#3B2D55</color>
+    <color name="omw_avatar_inner">#2A3345</color>
+    <color name="omw_success">#74D680</color>
+    <color name="omw_danger">#FF8892</color>
+    <color name="omw_overlay">#E61E1A2A</color>
+    <color name="omw_transparent">#00000000</color>
+    <color name="omw_purple_accent">#C5A3FF</color>
+    <color name="omw_purple_accent_soft">#443458</color>
+    <color name="omw_scrim">#CC000000</color>
+    <color name="omw_floating_surface">#211B2D</color>
+    <color name="omw_track">#55456B</color>
+    <color name="omw_overlay_purple">#884A2080</color>
+    <color name="omw_transparent_black">#00000000</color>
+    <color name="omw_glass_border">#33FFFFFF</color>
+    <color name="omw_glass_soft">#14FFFFFF</color>
+    <color name="omw_glass_handle">#33FFFFFF</color>
+    <color name="omw_shadow">#99000000</color>
+    <color name="omw_glass_card">#1FFFFFFF</color>
+    <color name="omw_bottom_nav_background">#171321</color>
+    <color name="omw_search_bar_background">#211B2D</color>
+    <color name="omw_toast_background">#2A2438</color>
+    <color name="omw_toast_text">#F6F0FF</color>
+</resources>

@@ -4,12 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F8F4FF"> <androidx.cardview.widget.CardView
+    android:background="@color/omw_surface_soft"> <androidx.cardview.widget.CardView
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardElevation="4dp"
     app:cardCornerRadius="0dp"
-    app:cardBackgroundColor="#FFFFFF">
+    app:cardBackgroundColor="@color/omw_surface">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,9 +23,9 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="@drawable/bg_search_oval"
-            android:backgroundTint="#F3E5F5"
+            android:backgroundTint="@color/omw_surface_variant"
             android:src="@drawable/ic_arrow_back"
-            app:tint="#4A2080" />
+            app:tint="@color/omw_purple_main" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -33,7 +33,7 @@
             android:text="Minhas Conexões"
             android:textSize="22sp"
             android:textStyle="bold"
-            android:textColor="#4A2080"
+            android:textColor="@color/omw_purple_main"
             android:layout_marginStart="16dp"/>
     </LinearLayout>
 </androidx.cardview.widget.CardView>
@@ -59,7 +59,7 @@
                 android:textAllCaps="true"
                 android:letterSpacing="0.1"
                 android:textStyle="bold"
-                android:textColor="#4A2080"
+                android:textColor="@color/omw_purple_main"
                 android:visibility="gone"
                 android:layout_marginBottom="12dp"/>
 
@@ -79,7 +79,7 @@
                 android:textAllCaps="true"
                 android:letterSpacing="0.1"
                 android:textStyle="bold"
-                android:textColor="#4A2080"
+                android:textColor="@color/omw_purple_main"
                 android:layout_marginBottom="12dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -92,7 +92,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#E1BEE7"
+                android:background="@color/omw_input_background_alt"
                 android:layout_marginBottom="24dp"/>
 
             <TextView
@@ -101,7 +101,7 @@
                 android:text="Explorar Novos Horizontes"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="#4A2080"
+                android:textColor="@color/omw_purple_main"
                 android:layout_marginBottom="12dp"/>
 
             <LinearLayout
@@ -109,7 +109,7 @@
                 android:layout_height="56dp"
                 android:orientation="horizontal"
                 android:background="@drawable/bg_search_oval"
-                android:backgroundTint="#FFFFFF"
+                android:backgroundTint="@color/omw_surface"
                 android:elevation="2dp"
                 android:gravity="center_vertical"
                 android:paddingHorizontal="16dp">
@@ -118,7 +118,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@android:drawable/ic_menu_search"
-                    app:tint="#9575CD" />
+                    app:tint="@color/omw_purple_light" />
 
                 <EditText
                     android:id="@+id/etSearchUser"
@@ -128,7 +128,7 @@
                     android:hint="Procure por @usuario..."
                     android:background="@android:color/transparent"
                     android:paddingStart="12dp"
-                    android:textColor="#4A2080"
+                    android:textColor="@color/omw_purple_main"
                     android:textSize="15sp"/>
 
                 <Button
@@ -137,8 +137,8 @@
                     android:layout_height="36dp"
                     android:text="IR"
                     android:textSize="12sp"
-                    android:backgroundTint="#4A2080"
-                    android:textColor="#FFFFFF"
+                    android:backgroundTint="@color/omw_purple_main"
+                    android:textColor="@color/omw_on_primary"
                     app:cornerRadius="18dp"
                     android:paddingHorizontal="16dp"/>
             </LinearLayout>
@@ -162,14 +162,14 @@
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingVertical="12dp"
-        android:background="#FFFFFF"
+        android:background="@color/omw_surface"
         android:elevation="8dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Páginas:"
-            android:textColor="#9575CD"
+            android:textColor="@color/omw_purple_light"
             android:textSize="12sp"
             android:layout_marginEnd="8dp"/>
 
@@ -179,8 +179,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:text="1"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#4A2080"
+            android:textColor="@color/omw_on_primary"
+            android:backgroundTint="@color/omw_purple_main"
             app:cornerRadius="20dp"
             android:layout_marginHorizontal="2dp"/>
 
@@ -190,7 +190,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:text="2"
-            android:textColor="#4A2080"
+            android:textColor="@color/omw_purple_main"
             app:cornerRadius="20dp"
             android:layout_marginHorizontal="2dp"/>
 
@@ -200,7 +200,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:text="3"
-            android:textColor="#4A2080"
+            android:textColor="@color/omw_purple_main"
             app:cornerRadius="20dp"
             android:layout_marginHorizontal="2dp"/>
 
@@ -210,7 +210,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:text="4"
-            android:textColor="#4A2080"
+            android:textColor="@color/omw_purple_main"
             app:cornerRadius="20dp"
             android:layout_marginHorizontal="2dp"/>
     </LinearLayout>
@@ -219,10 +219,10 @@
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="64dp"
-        android:background="#FFFFFF"
+        android:background="@color/omw_bottom_nav_background"
         app:elevation="16dp"
-        app:itemIconTint="#4A2080"
-        app:itemTextColor="#4A2080"
+        app:itemIconTint="@color/bottom_nav_item_color"
+        app:itemTextColor="@color/bottom_nav_item_color"
         app:menu="@menu/bottom_nav_menu" />
 
 </LinearLayout>

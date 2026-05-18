@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#22FFFFFF">
+    android:color="@color/omw_glass_soft">
     <item>
         <shape>
             <gradient
                 android:angle="0"
-                android:startColor="#7E53F4"
-                android:endColor="#5D2FC5" />
+                android:startColor="@color/omw_purple_light"
+                android:endColor="@color/omw_purple_main" />
             <corners android:radius="20dp" />
         </shape>
     </item>

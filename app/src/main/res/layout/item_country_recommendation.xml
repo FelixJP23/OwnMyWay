@@ -50,7 +50,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:textColor="#6B6374"
+                    android:textColor="@color/omw_text_muted"
                     android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>
@@ -75,7 +75,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:lineSpacingExtra="3dp"
-            android:textColor="#3E3848"
+            android:textColor="@color/omw_text_secondary"
             android:textSize="14sp" />
 
         <TextView
@@ -83,7 +83,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:textColor="#6B6374"
+            android:textColor="@color/omw_text_muted"
             android:textSize="13sp" />
 
         <TextView
@@ -91,7 +91,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="#8A8096"
+            android:textColor="@color/omw_text_muted"
             android:textSize="12sp" />
 
         <Button

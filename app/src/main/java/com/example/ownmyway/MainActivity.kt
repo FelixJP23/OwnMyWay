@@ -27,6 +27,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.addCallback
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.ownmyway.model.Friendship
@@ -40,6 +41,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.realtime.PostgresAction
@@ -70,6 +72,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     companion object {
         const val EXTRA_RECOMMENDED_MAP_QUERY = "extra_recommended_map_query"
         const val EXTRA_RECOMMENDED_MAP_TITLE = "extra_recommended_map_title"
+        const val EXTRA_SHOW_WELCOME_MESSAGE = "extra_show_welcome_message"
         private const val KEY_TRAVEL_PROMPT_LAST_SHOWN = "last_shown"
         private var greetingShownThisSession = false
     }
@@ -295,6 +298,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         tvMainGreeting = findViewById(R.id.tvMainGreeting)
 
         setupBottomNavigation()
+        maybeShowWelcomeMessage()
         MealNotificationReceiver.createChannel(this)
 
         if (!Places.isInitialized()) Places.initialize(applicationContext, mapsApiKey)
@@ -527,7 +531,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val primary = TextView(this).apply {
             text = prediction.getPrimaryText(null).toString()
-            setTextColor(Color.parseColor("#2D1060"))
+            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.omw_purple_mid))
             textSize = 14f
             typeface = android.graphics.Typeface.DEFAULT_BOLD
             maxLines = 1
@@ -535,7 +539,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val secondary = TextView(this).apply {
             text = prediction.getSecondaryText(null).toString()
-            setTextColor(Color.parseColor("#7A6B8F"))
+            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.omw_text_muted))
             textSize = 12f
             maxLines = 1
         }
@@ -812,6 +816,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     // ── Bottom navigation ─────────────────────────────────────────────────
+
+    private fun maybeShowWelcomeMessage() {
+        if (!intent.getBooleanExtra(EXTRA_SHOW_WELCOME_MESSAGE, false)) return
+        intent.removeExtra(EXTRA_SHOW_WELCOME_MESSAGE)
+
+        Snackbar.make(
+            findViewById(android.R.id.content),
+            "Bem-vindo!",
+            Snackbar.LENGTH_SHORT
+        ).apply {
+            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.omw_toast_text))
+            setBackgroundTint(ContextCompat.getColor(this@MainActivity, R.color.omw_toast_background))
+            show()
+        }
+    }
+
     private fun setupBottomNavigation() {
         AppBottomNavigation.setup(
             activity = this,
@@ -1048,7 +1068,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             else         -> android.R.drawable.ic_menu_compass       to "---"
         }
         ivWeatherIcon.setImageResource(iconRes)
-        ivWeatherIcon.setColorFilter(Color.parseColor("#4A2080"))
+        ivWeatherIcon.setColorFilter(ContextCompat.getColor(this@MainActivity, R.color.omw_purple_main))
         tvWeatherCondition.text = condition
         currentCondition = condition
     }
@@ -1154,7 +1174,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 withContext(Dispatchers.Main) {
                     routePolyline?.remove()
                     routePolyline = map.addPolyline(PolylineOptions()
-                        .addAll(decodePolyline(points)).color(Color.parseColor("#4A2080")).width(12f).geodesic(true))
+                        .addAll(decodePolyline(points)).color(ContextCompat.getColor(this@MainActivity, R.color.omw_purple_main)).width(12f).geodesic(true))
                     cancelTravelPromptWatcher()
                     map.animateCamera(CameraUpdateFactory.newLatLngBounds(
                         LatLngBounds.builder().include(origin).include(destination).build(), 120))
@@ -1267,7 +1287,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     routePolyline = map.addPolyline(
                         PolylineOptions()
                             .addAll(decodePolyline(points))
-                            .color(Color.parseColor("#4A2080"))
+                            .color(ContextCompat.getColor(this@MainActivity, R.color.omw_purple_main))
                             .width(12f)
                             .geodesic(true)
                     )

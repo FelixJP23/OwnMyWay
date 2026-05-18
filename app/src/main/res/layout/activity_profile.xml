@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F6F3FA">
+    android:background="@color/omw_background">
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/profileScroll"
@@ -66,7 +66,7 @@
             android:layout_height="148dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="28dp"
-            app:cardBackgroundColor="#DCCDF6"
+            app:cardBackgroundColor="@color/omw_avatar_ring"
             app:cardCornerRadius="74dp"
             app:cardElevation="0dp">
 
@@ -78,7 +78,7 @@
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    app:cardBackgroundColor="#40506A"
+                    app:cardBackgroundColor="@color/omw_avatar_inner"
                     app:cardCornerRadius="70dp"
                     app:cardElevation="0dp">
 
@@ -115,8 +115,8 @@
             android:hint="Seu nome"
             android:inputType="textPersonName"
             android:padding="0dp"
-            android:textColor="#20233F"
-            android:textColorHint="#9598AD"
+            android:textColor="@color/omw_text_primary"
+            android:textColorHint="@color/omw_text_hint"
             android:textSize="28sp" />
 
         <LinearLayout
@@ -131,7 +131,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@"
-                android:textColor="#7D8094"
+                android:textColor="@color/omw_text_muted"
                 android:textSize="18sp" />
 
             <EditText
@@ -144,8 +144,8 @@
                 android:hint="username"
                 android:inputType="textNoSuggestions"
                 android:padding="0dp"
-                android:textColor="#7D8094"
-                android:textColorHint="#A6A8B8"
+                android:textColor="@color/omw_text_muted"
+                android:textColorHint="@color/omw_text_hint"
                 android:textSize="18sp" />
         </LinearLayout>
 
@@ -154,7 +154,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="34dp"
             android:text="✦ Manifesto do Viajante"
-            android:textColor="#1F2140"
+            android:textColor="@color/omw_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -162,7 +162,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#ECE7F4"
+            app:cardBackgroundColor="@color/omw_surface_variant"
             app:cardCornerRadius="28dp"
             app:cardElevation="0dp">
 
@@ -176,8 +176,8 @@
                 android:inputType="textMultiLine|textCapSentences"
                 android:minHeight="150dp"
                 android:padding="22dp"
-                android:textColor="#353752"
-                android:textColorHint="#8E90A5"
+                android:textColor="@color/omw_text_secondary"
+                android:textColorHint="@color/omw_text_hint"
                 android:textSize="16sp" />
         </androidx.cardview.widget.CardView>
 
@@ -186,7 +186,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:text="◉ Lugares visitados"
-            android:textColor="#1F2140"
+            android:textColor="@color/omw_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -194,7 +194,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#ECE7F4"
+            app:cardBackgroundColor="@color/omw_surface_variant"
             app:cardCornerRadius="28dp"
             app:cardElevation="0dp">
 
@@ -208,8 +208,8 @@
                 android:inputType="textMultiLine|textCapSentences"
                 android:minHeight="120dp"
                 android:padding="22dp"
-                android:textColor="#353752"
-                android:textColorHint="#8E90A5"
+                android:textColor="@color/omw_text_secondary"
+                android:textColorHint="@color/omw_text_hint"
                 android:textSize="16sp" />
         </androidx.cardview.widget.CardView>
 
@@ -218,7 +218,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="26dp"
             android:text="✈ Quero visitar"
-            android:textColor="#1F2140"
+            android:textColor="@color/omw_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -226,7 +226,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#ECE7F4"
+            app:cardBackgroundColor="@color/omw_surface_variant"
             app:cardCornerRadius="28dp"
             app:cardElevation="0dp">
 
@@ -240,8 +240,8 @@
                 android:inputType="textMultiLine|textCapSentences"
                 android:minHeight="120dp"
                 android:padding="22dp"
-                android:textColor="#353752"
-                android:textColorHint="#8E90A5"
+                android:textColor="@color/omw_text_secondary"
+                android:textColorHint="@color/omw_text_hint"
                 android:textSize="16sp" />
         </androidx.cardview.widget.CardView>
 
@@ -250,7 +250,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:text="⌂ Meu Estilo"
-            android:textColor="#1F2140"
+            android:textColor="@color/omw_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -275,7 +275,7 @@
             android:paddingBottom="12dp"
             android:text="+ Adicionar Estilo"
             android:textAllCaps="false"
-            android:textColor="#6F6F80"
+            android:textColor="@color/omw_text_muted"
             android:textSize="16sp" />
 
         <TextView
@@ -283,7 +283,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:text="¤ Meu Bolso"
-            android:textColor="#1F2140"
+            android:textColor="@color/omw_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -300,7 +300,7 @@
                 android:buttonTint="@color/omw_purple_mid"
                 android:padding="10dp"
                 android:text="Econômico"
-                android:textColor="#353752"
+                android:textColor="@color/omw_text_secondary"
                 android:textSize="16sp" />
 
             <RadioButton
@@ -310,7 +310,7 @@
                 android:buttonTint="@color/omw_purple_mid"
                 android:padding="10dp"
                 android:text="Equilibrado"
-                android:textColor="#353752"
+                android:textColor="@color/omw_text_secondary"
                 android:textSize="16sp" />
 
             <RadioButton
@@ -320,7 +320,7 @@
                 android:buttonTint="@color/omw_purple_mid"
                 android:padding="10dp"
                 android:text="Conforto primeiro"
-                android:textColor="#353752"
+                android:textColor="@color/omw_text_secondary"
                 android:textSize="16sp" />
         </RadioGroup>
 
@@ -329,7 +329,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="26dp"
             android:text="➜ Meu Ritmo"
-            android:textColor="#1F2140"
+            android:textColor="@color/omw_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -346,7 +346,7 @@
                 android:buttonTint="@color/omw_purple_mid"
                 android:padding="10dp"
                 android:text="Sem pressa"
-                android:textColor="#353752"
+                android:textColor="@color/omw_text_secondary"
                 android:textSize="16sp" />
 
             <RadioButton
@@ -356,7 +356,7 @@
                 android:buttonTint="@color/omw_purple_mid"
                 android:padding="10dp"
                 android:text="Equilibrado"
-                android:textColor="#353752"
+                android:textColor="@color/omw_text_secondary"
                 android:textSize="16sp" />
 
             <RadioButton
@@ -366,7 +366,7 @@
                 android:buttonTint="@color/omw_purple_mid"
                 android:padding="10dp"
                 android:text="Quero ver tudo"
-                android:textColor="#353752"
+                android:textColor="@color/omw_text_secondary"
                 android:textSize="16sp" />
         </RadioGroup>
 
@@ -389,7 +389,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="18dp"
             android:text="Cancelar Alterações"
-            android:textColor="#626376"
+            android:textColor="@color/omw_text_muted"
             android:textSize="17sp" />
 
         <Button
@@ -398,7 +398,7 @@
             android:layout_height="56dp"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="12dp"
-            android:backgroundTint="#B03A48"
+            android:backgroundTint="@color/omw_danger"
             android:text="Sair da conta"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
@@ -411,9 +411,9 @@
         android:id="@+id/bottom_navigation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        app:itemIconTint="@color/omw_purple_main"
-        app:itemTextColor="@color/omw_purple_main"
+        android:background="@color/omw_bottom_nav_background"
+        app:itemIconTint="@color/bottom_nav_item_color"
+        app:itemTextColor="@color/bottom_nav_item_color"
         app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -1,26 +1,17 @@
 package com.example.ownmyway
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 
 class FilterBottomSheet : BottomSheetDialogFragment() {
-
-    private val chipBgColors = ColorStateList(
-        arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
-        intArrayOf(Color.parseColor("#4A2080"), Color.parseColor("#F0E8FF"))
-    )
-    private val chipTextColors = ColorStateList(
-        arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
-        intArrayOf(Color.WHITE, Color.parseColor("#4A2080"))
-    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -61,8 +52,22 @@ class FilterBottomSheet : BottomSheetDialogFragment() {
         val chip = Chip(requireContext()).apply {
             text = "${category.emoji} ${category.displayName}"
             isCheckable = true
-            chipBackgroundColor = chipBgColors
-            setTextColor(chipTextColors)
+            chipBackgroundColor = ColorStateList(
+                arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+                intArrayOf(
+                    ContextCompat.getColor(requireContext(), R.color.omw_purple_main),
+                    ContextCompat.getColor(requireContext(), R.color.omw_input_background_alt)
+                )
+            )
+            setTextColor(
+                ColorStateList(
+                    arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+                    intArrayOf(
+                        ContextCompat.getColor(requireContext(), R.color.omw_on_primary),
+                        ContextCompat.getColor(requireContext(), R.color.omw_purple_main)
+                    )
+                )
+            )
             chipStrokeWidth = 0f
             isCheckedIconVisible = false
             tag = category.name

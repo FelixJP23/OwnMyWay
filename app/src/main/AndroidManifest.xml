@@ -16,6 +16,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
+        android:name=".OwnMyWayApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -43,7 +44,7 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.OwnMyWay.Splash">
+            android:theme="@style/Theme.OwnMyWay.SplashFixed">
             <intent-filter>
 
                 <action android:name="android.intent.action.MAIN" />
@@ -73,7 +74,8 @@
             android:name=".RegisterActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:label="Cadastro">
+            android:label="Cadastro"
+            android:theme="@style/Theme.OwnMyWay.RegisterFixed">
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -97,7 +99,7 @@
             android:theme="@style/Theme.OwnMyWay.NoActionBar" />
         <activity
             android:name=".CameraActivity"
-/>
+            android:exported="false" />
         <receiver
             android:name=".MealNotificationReceiver"
             android:exported="false"/>

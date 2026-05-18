@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="Como você quer aproveitar o seu tempo?"
-        android:textColor="#666666" />
+        android:textColor="@color/omw_text_muted" />
 
     <RadioGroup
         android:id="@+id/radioGroupPace"

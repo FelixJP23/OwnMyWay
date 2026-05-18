@@ -19,8 +19,8 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="20dp"
-            android:background="#CCCCCC"
-            android:backgroundTint="#CCCCCC"/>
+            android:background="@color/omw_divider"
+            android:backgroundTint="@color/omw_divider"/>
 
         <!-- Section 1 title -->
         <TextView
@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
             android:text="Seu ajudante de viagem"
-            android:textColor="#4A2080"
+            android:textColor="@color/omw_purple_main"
             android:textSize="18sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium"/>
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="14dp"
             android:text="Selecione o que você quer explorar"
-            android:textColor="#888888"
+            android:textColor="@color/omw_text_muted"
             android:textSize="13sp"/>
 
         <!-- Traveler chips -->
@@ -53,7 +53,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginBottom="20dp"
-            android:background="#F0F0F0"/>
+            android:background="@color/omw_surface_variant"/>
 
         <!-- Section 2 title -->
         <TextView
@@ -61,7 +61,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="14dp"
             android:text="Geral"
-            android:textColor="#4A2080"
+            android:textColor="@color/omw_purple_main"
             android:textSize="18sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium"/>
@@ -78,7 +78,7 @@
             android:id="@+id/btnShowMe"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:backgroundTint="#4A2080"
+            android:backgroundTint="@color/omw_purple_main"
             android:text="Mostrar →"
             android:textColor="@android:color/white"
             android:textSize="16sp"

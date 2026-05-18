@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F8F8">
+    android:background="@color/omw_surface_soft">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarSocial"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/omw_surface"
         app:elevation="0dp"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -18,14 +18,14 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="Explorar Amigos"
-            app:titleTextColor="#4A2080"
+            app:titleTextColor="@color/omw_purple_main"
             app:navigationIcon="@android:drawable/ic_menu_revert"
-            app:navigationIconTint="#4A2080" />
+            app:navigationIconTint="@color/omw_purple_main" />
             
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#EEEEEE" />
+            android:background="@color/omw_surface_variant" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
