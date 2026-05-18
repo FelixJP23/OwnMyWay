@@ -95,6 +95,7 @@ dependencies {
     implementation("io.ktor:ktor-client-android:3.0.1")
     implementation("io.github.jan-tennert.supabase:storage-kt")
 
+
     // CameraX — 1.4.0 ships 16KB-aligned native libs
     implementation("androidx.camera:camera-core:1.4.0")
     implementation("androidx.camera:camera-camera2:1.4.0")
@@ -122,4 +123,5 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     // Realtime:
     implementation("io.github.jan-tennert.supabase:realtime-kt:3.0.1")
+
 }
