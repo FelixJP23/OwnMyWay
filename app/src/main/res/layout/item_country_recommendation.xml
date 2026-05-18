@@ -5,117 +5,172 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="12dp"
     android:layout_marginBottom="4dp"
-    app:cardBackgroundColor="@android:color/white"
+    app:cardBackgroundColor="@color/omw_card"
     app:cardCornerRadius="24dp"
     app:cardElevation="5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:orientation="vertical">
 
-        <LinearLayout
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_height="158dp">
+
+            <ImageView
+                android:id="@+id/ivCountryCover"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_country_cover_fallback"
+                android:contentDescription="Foto de capa do destino"
+                android:scaleType="centerCrop" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_country_cover_overlay" />
 
             <TextView
                 android:id="@+id/tvCountryEmoji"
-                android:layout_width="52dp"
-                android:layout_height="52dp"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:layout_gravity="start|bottom"
+                android:layout_marginStart="18dp"
+                android:layout_marginBottom="16dp"
                 android:background="@drawable/bg_country_emoji"
                 android:gravity="center"
                 android:text="🇵🇹"
                 android:textSize="28sp" />
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/tvBudgetChip"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:layout_gravity="end|top"
+                android:layout_marginTop="14dp"
+                android:layout_marginEnd="14dp"
+                android:fontFamily="sans-serif-medium"
+                android:paddingStart="12dp"
+                android:paddingTop="7dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="7dp"
+                android:text="💸 $$"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvCountryName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/playfair_display_bold"
+                        android:textColor="@color/omw_purple_mid"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:id="@+id/tvCountrySubtitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="@color/omw_text_muted"
+                        android:textSize="13sp" />
+                </LinearLayout>
 
                 <TextView
-                    android:id="@+id/tvCountryName"
-                    android:layout_width="match_parent"
+                    android:id="@+id/tvCountryMatch"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/playfair_display_bold"
-                    android:textColor="@color/omw_purple_mid"
-                    android:textSize="24sp" />
-
-                <TextView
-                    android:id="@+id/tvCountrySubtitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:textColor="@color/omw_text_muted"
-                    android:textSize="13sp" />
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_country_match"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:textColor="@color/omw_purple_main"
+                    android:textSize="12sp" />
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvCountryCallout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="sans-serif-medium"
+                android:lineSpacingExtra="3dp"
+                android:textColor="@color/omw_text_primary"
+                android:textSize="14sp" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupCountryTags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:chipSpacingHorizontal="8dp"
+                app:chipSpacingVertical="6dp" />
+
+            <TextView
+                android:id="@+id/tvCountryReason"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:lineSpacingExtra="3dp"
+                android:textColor="@color/omw_text_secondary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvCountryHighlights"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColor="@color/omw_text_muted"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btnAddToFavorites"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_button_primary"
+                android:fontFamily="sans-serif-medium"
+                android:text="♡ Salvar como ideia de destino"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/btnOpenCountry"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_register_cta"
+                android:fontFamily="sans-serif-medium"
+                android:text="Ver no mapa integrado"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="15sp" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/tvCountryMatch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_country_match"
-            android:fontFamily="sans-serif-medium"
-            android:paddingStart="12dp"
-            android:paddingTop="6dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="6dp"
-            android:textColor="@color/omw_purple_main"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/tvCountryReason"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:lineSpacingExtra="3dp"
-            android:textColor="@color/omw_text_secondary"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tvCountryHighlights"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:textColor="@color/omw_text_muted"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/tvCountryTags"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="@color/omw_text_muted"
-            android:textSize="12sp" />
-
-        <Button
-            android:id="@+id/btnAddToFavorites"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_button_primary"
-            android:fontFamily="sans-serif-medium"
-            android:text="Adicionar aos favoritos"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:textSize="15sp" />
-
-        <Button
-            android:id="@+id/btnOpenCountry"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_register_cta"
-            android:fontFamily="sans-serif-medium"
-            android:text="Ver no mapa integrado"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:textSize="15sp" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

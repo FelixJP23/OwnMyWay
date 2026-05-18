@@ -109,6 +109,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     // ── Speed dial ────────────────────────────────────────────────────────
     private lateinit var fabMenu: FloatingActionButton
+    private lateinit var fabMyLocation: FloatingActionButton
     private lateinit var fabScrim: View
     private lateinit var fabItemRoute: View
     private lateinit var fabItemCamera: View
@@ -286,6 +287,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         fabOffline         = findViewById(R.id.fabOffline)
         tvCostCounter      = findViewById(R.id.tvCostCounter)
         fabMenu            = findViewById(R.id.fabMenu)
+        fabMyLocation      = findViewById(R.id.fabMyLocation)
         fabScrim           = findViewById(R.id.fabScrim)
         fabItemRoute       = findViewById(R.id.fabItemRoute)
         fabItemCamera      = findViewById(R.id.fabItemCamera)
@@ -314,6 +316,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             if (isFabMenuOpen) closeFabMenu()
             FilterBottomSheet().show(supportFragmentManager, "filter")
         }
+
+        // Botão de localização: volta para o usuário mesmo depois de explorar destinos distantes
+        fabMyLocation.setOnClickListener { centerMapOnUserLocation() }
 
         // Speed dial
         fabMenu.setOnClickListener { toggleFabMenu() }
@@ -836,14 +841,46 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         AppBottomNavigation.setup(
             activity = this,
             selectedItemId = R.id.nav_home,
-            onHomeSelected = {
-                currentLatLng?.let { map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 15f)) }
-                    ?: Toast.makeText(this, "Localização ainda não disponível", Toast.LENGTH_SHORT).show()
-            },
+            onHomeSelected = { centerMapOnUserLocation() },
             onFriendsSelected = {
                 atualizarBadgeAmigos(false)
             }
         )
+    }
+
+    private fun centerMapOnUserLocation() {
+        hideSearchSuggestions()
+        if (isFabMenuOpen) closeFabMenu()
+
+        val cachedLocation = currentLatLng
+        if (cachedLocation != null) {
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(cachedLocation, 15f))
+            fetchWeather(cachedLocation)
+            return
+        }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Permita a localização para voltar ao seu ponto atual", Toast.LENGTH_SHORT).show()
+            requestLocationPermission()
+            return
+        }
+
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location ->
+                if (location == null) {
+                    Toast.makeText(this, "Localização ainda não disponível", Toast.LENGTH_SHORT).show()
+                    return@addOnSuccessListener
+                }
+
+                val latLng = LatLng(location.latitude, location.longitude)
+                currentLatLng = latLng
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                fetchWeather(latLng)
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Não foi possível encontrar sua localização agora", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun carregarFotoPerfil() {

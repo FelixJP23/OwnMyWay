@@ -1,11 +1,14 @@
 package com.example.ownmyway
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -13,6 +16,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import io.github.jan.supabase.auth.auth
@@ -61,7 +65,7 @@ class CountryRecommendationsActivity : AppCompatActivity() {
 
             renderProfileChips(profile)
             renderSummary(profile, results)
-            renderRecommendations(results)
+            renderRecommendations(profile, results)
         }
     }
 
@@ -75,25 +79,16 @@ class CountryRecommendationsActivity : AppCompatActivity() {
         }
 
         visibleTags.forEach { label ->
-            chipGroupProfile.addView(Chip(this).apply {
-                text = label
-                isCheckable = false
-                isClickable = false
-                chipBackgroundColor = android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this@CountryRecommendationsActivity, R.color.omw_input_background))
-                setTextColor(ContextCompat.getColor(this@CountryRecommendationsActivity, R.color.omw_purple_main))
-                chipStrokeColor = android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this@CountryRecommendationsActivity, R.color.omw_avatar_ring))
-                chipStrokeWidth = 1f
-                textSize = 13f
-            })
+            chipGroupProfile.addView(createTagChip(label, emphasize = true))
         }
     }
 
     private fun renderSummary(profile: UserTravelProfile, results: List<RecommendationResult>) {
         val topCountries = results.take(3).joinToString(", ") { it.destination.country }
-        val budgetLabel = when (profile.budgetLevel) {
-            "low" -> "econômico"
-            "high" -> "premium"
-            else -> "moderado"
+        val budgetLabel = when (normalizeBudget(profile.budgetLevel)) {
+            "low" -> "econômico (\$)"
+            "high" -> "luxuoso (\$\$\$)"
+            else -> "moderado (\$\$)"
         }
         val paceLabel = when (profile.travelPace) {
             "relaxed" -> "tranquilo"
@@ -102,10 +97,10 @@ class CountryRecommendationsActivity : AppCompatActivity() {
         }
 
         tvRecommendationSummary.text =
-            "Com base nos seus interesses e no seu estilo $budgetLabel/$paceLabel, os destinos mais fortes para você são: $topCountries."
+            "Com base nos seus interesses e no seu estilo $budgetLabel/$paceLabel, os destinos mais fortes para você são: $topCountries. "
     }
 
-    private fun renderRecommendations(results: List<RecommendationResult>) {
+    private fun renderRecommendations(profile: UserTravelProfile, results: List<RecommendationResult>) {
         recommendationsContainer.removeAllViews()
 
         results.take(6).forEach { result ->
@@ -116,18 +111,37 @@ class CountryRecommendationsActivity : AppCompatActivity() {
                 false
             )
 
+            val cover = item.findViewById<ImageView>(R.id.ivCountryCover)
+            Glide.with(this)
+                .load(destination.coverImageUrl)
+                .centerCrop()
+                .placeholder(R.drawable.bg_country_cover_fallback)
+                .error(R.drawable.bg_country_cover_fallback)
+                .into(cover)
+
             item.findViewById<TextView>(R.id.tvCountryEmoji).text = destination.emoji
             item.findViewById<TextView>(R.id.tvCountryName).text = destination.country
             item.findViewById<TextView>(R.id.tvCountrySubtitle).text = destination.subtitle
             item.findViewById<TextView>(R.id.tvCountryMatch).text = "${result.matchPercent}% compatível"
+            item.findViewById<TextView>(R.id.tvCountryCallout).text = destination.callout
             item.findViewById<TextView>(R.id.tvCountryReason).text = destination.reason
             item.findViewById<TextView>(R.id.tvCountryHighlights).text =
                 destination.highlights.joinToString(separator = "  •  ")
-            item.findViewById<TextView>(R.id.tvCountryTags).text =
-                "Combina com: ${destination.tags.take(4).joinToString(", ")}"
 
-            item.findViewById<Button>(R.id.btnAddToFavorites).setOnClickListener {
-                addToFavorites(destination.country)
+            val chipGroup = item.findViewById<ChipGroup>(R.id.chipGroupCountryTags)
+            chipGroup.removeAllViews()
+            destination.tags.take(4).forEach { tag ->
+                chipGroup.addView(createTagChip(tag, emphasize = destination.tags.intersect(tagsFromInterests(profile.interests)).contains(tag)))
+            }
+
+            val budgetChip = item.findViewById<TextView>(R.id.tvBudgetChip)
+            renderBudgetChip(budgetChip, profile.budgetLevel, destination.budgetFit)
+
+            val favoriteButton = item.findViewById<Button>(R.id.btnAddToFavorites)
+            updateFavoriteButton(favoriteButton, destination.country)
+            favoriteButton.setOnClickListener {
+                toggleFavorite(destination.country)
+                updateFavoriteButton(favoriteButton, destination.country)
             }
 
             item.findViewById<Button>(R.id.btnOpenCountry).setOnClickListener {
@@ -138,13 +152,60 @@ class CountryRecommendationsActivity : AppCompatActivity() {
         }
     }
 
-    private fun addToFavorites(countryName: String) {
-        val userId = try {
-            SupabaseClient.client.auth.currentUserOrNull()?.id
-        } catch (_: Exception) {
-            null
+    private fun createTagChip(label: String, emphasize: Boolean = false): Chip {
+        return Chip(this).apply {
+            text = label.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            isCheckable = false
+            isClickable = false
+            chipBackgroundColor = ColorStateList.valueOf(
+                ContextCompat.getColor(
+                    this@CountryRecommendationsActivity,
+                    if (emphasize) R.color.omw_input_background_alt else R.color.omw_input_background
+                )
+            )
+            setTextColor(ContextCompat.getColor(this@CountryRecommendationsActivity, R.color.omw_purple_main))
+            chipStrokeColor = ColorStateList.valueOf(ContextCompat.getColor(this@CountryRecommendationsActivity, R.color.omw_avatar_ring))
+            chipStrokeWidth = 1f
+            textSize = 12.5f
+        }
+    }
+
+    private fun renderBudgetChip(chip: TextView, userBudget: String, destinationBudget: String) {
+        val userLevel = budgetRank(userBudget)
+        val destinationLevel = budgetRank(destinationBudget)
+        val colorRes = when {
+            destinationLevel < userLevel -> R.color.omw_budget_good
+            destinationLevel == userLevel -> R.color.omw_budget_equal
+            else -> R.color.omw_budget_over
+        }
+        val label = when (destinationLevel) {
+            1 -> "💸 \$"
+            3 -> "💸 \$\$\$"
+            else -> "💸 \$\$"
+        }
+        val hint = when {
+            destinationLevel < userLevel -> "abaixo do seu orçamento"
+            destinationLevel == userLevel -> "dentro do seu orçamento"
+            else -> "acima do seu orçamento"
         }
 
+        chip.text = "$label · $hint"
+        chip.background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(18).toFloat()
+            setColor(ContextCompat.getColor(this@CountryRecommendationsActivity, colorRes))
+        }
+        chip.setTextColor(Color.WHITE)
+    }
+
+    private fun updateFavoriteButton(button: Button, countryName: String) {
+        val saved = isFavorite(countryName)
+        button.text = if (saved) "✓ Salvo como ideia de destino" else "♡ Salvar como ideia de destino"
+        button.alpha = if (saved) 0.92f else 1f
+    }
+
+    private fun toggleFavorite(countryName: String) {
+        val userId = currentUserId()
         if (userId == null) {
             Toast.makeText(this, "Faça login para salvar favoritos", Toast.LENGTH_SHORT).show()
             return
@@ -152,22 +213,33 @@ class CountryRecommendationsActivity : AppCompatActivity() {
 
         val prefs = getSharedPreferences("profile_local_fields", MODE_PRIVATE)
         val key = "want_to_visit_$userId"
-        val currentText = prefs.getString(key, "").orEmpty()
-
-        val countries = if (currentText.isBlank()) {
-            mutableListOf()
-        } else {
-            currentText.split(",").map { it.trim() }.toMutableList()
-        }
+        val countries = favoriteCountries().toMutableList()
 
         if (countries.any { it.equals(countryName, ignoreCase = true) }) {
-            Toast.makeText(this, "$countryName já está nos seus favoritos", Toast.LENGTH_SHORT).show()
+            val updated = countries.filterNot { it.equals(countryName, ignoreCase = true) }
+            prefs.edit().putString(key, updated.joinToString(", ")).apply()
+            Toast.makeText(this, "$countryName removido dos favoritos", Toast.LENGTH_SHORT).show()
         } else {
             countries.add(countryName)
-            val newText = countries.joinToString(", ")
-            prefs.edit().putString(key, newText).apply()
-            Toast.makeText(this, "$countryName adicionado aos favoritos!", Toast.LENGTH_SHORT).show()
+            prefs.edit().putString(key, countries.distinct().joinToString(", ")).apply()
+            Toast.makeText(this, "$countryName salvo como ideia de destino!", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun isFavorite(countryName: String): Boolean =
+        favoriteCountries().any { it.equals(countryName, ignoreCase = true) }
+
+    private fun favoriteCountries(): List<String> {
+        val userId = currentUserId() ?: return emptyList()
+        val prefs = getSharedPreferences("profile_local_fields", MODE_PRIVATE)
+        val currentText = prefs.getString("want_to_visit_$userId", "").orEmpty()
+        return currentText.split(",").map { it.trim() }.filter { it.isNotBlank() }
+    }
+
+    private fun currentUserId(): String? = try {
+        SupabaseClient.client.auth.currentUserOrNull()?.id
+    } catch (_: Exception) {
+        null
     }
 
     private fun openCountryInAppMap(destination: CountryDestination) {
@@ -183,13 +255,15 @@ class CountryRecommendationsActivity : AppCompatActivity() {
 
     private fun buildRecommendations(profile: UserTravelProfile): List<RecommendationResult> {
         val profileTags = tagsFromInterests(profile.interests)
+        val normalizedBudget = normalizeBudget(profile.budgetLevel)
         val destinations = countryDestinations()
 
         val scored = destinations.map { destination ->
             val tagScore = destination.tags.intersect(profileTags).size * 12
             val budgetScore = when {
-                destination.budgetFit == profile.budgetLevel -> 10
-                destination.budgetFit == "medium" || profile.budgetLevel == "medium" -> 5
+                destination.budgetFit == normalizedBudget -> 10
+                budgetRank(destination.budgetFit) < budgetRank(normalizedBudget) -> 8
+                budgetRank(destination.budgetFit) == budgetRank(normalizedBudget) + 1 -> 3
                 else -> 1
             }
             val paceScore = when {
@@ -231,18 +305,12 @@ class CountryRecommendationsActivity : AppCompatActivity() {
                     tags.addAll(listOf("vida noturna", "música", "urbano"))
 
                 value.contains("compras") || value.contains("craft") || value.contains("shopping") ->
-                    tags.addAll(listOf("compras", "urbano", "gastronomia"))
+                    tags.addAll(listOf("compras", "urbano", "cultura"))
 
-                value.contains("hist") ->
-                    tags.addAll(listOf("história", "cultura", "museus"))
+                value.contains("photo") || value.contains("video") || value.contains("film") ->
+                    tags.addAll(listOf("fotografia", "urbano", "natureza"))
 
-                value.contains("photo") ->
-                    tags.addAll(listOf("fotografia", "natureza", "cultura"))
-
-                value.contains("program") || value.contains("coding") || value.contains("game") ->
-                    tags.addAll(listOf("tecnologia", "cafés", "urbano"))
-
-                value.contains("reading") || value.contains("writing") || value.contains("journal") ->
+                value.contains("book") || value.contains("writing") || value.contains("journal") ->
                     tags.addAll(listOf("cafés", "cultura", "slow travel"))
 
                 value.contains("meditation") || value.contains("swimming") || value.contains("gym") ->
@@ -265,7 +333,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             budgetFit = "medium",
             paceFit = "relaxed",
             highlights = listOf("Lisboa", "Porto", "Sintra"),
-            reason = "Ótimo para quem gosta de caminhar sem pressa, comer bem e visitar lugares históricos sem perder o conforto."
+            callout = "Perfeito pra quem ama história, cafés charmosos e cultura local.",
+            reason = "Ótimo para quem gosta de caminhar sem pressa, comer bem e visitar lugares históricos sem perder o conforto.",
+            coverImageUrl = "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&q=80"
         ),
         CountryDestination(
             country = "Japão",
@@ -275,7 +345,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             budgetFit = "high",
             paceFit = "fast",
             highlights = listOf("Tóquio", "Kyoto", "Osaka"),
-            reason = "Combina com perfis curiosos, que gostam de explorar bastante e alternar tradição, modernidade e experiências diferentes."
+            callout = "Perfeito pra quem quer tradição, modernidade e muitos lugares fotogênicos.",
+            reason = "Combina com perfis curiosos, que gostam de explorar bastante e alternar tradição, modernidade e experiências diferentes.",
+            coverImageUrl = "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=80"
         ),
         CountryDestination(
             country = "Itália",
@@ -285,7 +357,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             budgetFit = "medium",
             paceFit = "moderate",
             highlights = listOf("Roma", "Florença", "Veneza"),
-            reason = "Uma escolha forte para quem curte arte, arquitetura, cidades bonitas e uma viagem com cara de experiência memorável."
+            callout = "Perfeito pra quem ama arte, arquitetura e refeições memoráveis.",
+            reason = "Uma escolha forte para quem curte arte, arquitetura, cidades bonitas e uma viagem com cara de experiência memorável.",
+            coverImageUrl = "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=1200&q=80"
         ),
         CountryDestination(
             country = "Canadá",
@@ -295,7 +369,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             budgetFit = "high",
             paceFit = "moderate",
             highlights = listOf("Banff", "Vancouver", "Toronto"),
-            reason = "Ideal para equilibrar cidade grande com montanhas, lagos e experiências ao ar livre."
+            callout = "Perfeito pra quem ama trilhas, lagos e cidades organizadas.",
+            reason = "Ideal para equilibrar cidade grande com montanhas, lagos e experiências ao ar livre.",
+            coverImageUrl = "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&q=80"
         ),
         CountryDestination(
             country = "Peru",
@@ -305,7 +381,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             budgetFit = "low",
             paceFit = "fast",
             highlights = listOf("Cusco", "Machu Picchu", "Lima"),
-            reason = "Perfeito para quem quer uma viagem com sensação de conquista, paisagens fortes e muita história."
+            callout = "Perfeito pra quem ama trilhas, cultura ancestral e paisagens intensas.",
+            reason = "Perfeito para quem quer uma viagem com sensação de conquista, paisagens fortes e muita história.",
+            coverImageUrl = "https://images.unsplash.com/photo-1526392060635-9d6019884377?w=1200&q=80"
         ),
         CountryDestination(
             country = "Chile",
@@ -315,7 +393,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             budgetFit = "medium",
             paceFit = "moderate",
             highlights = listOf("Atacama", "Santiago", "Patagônia"),
-            reason = "Boa opção para quem gosta de paisagens diferentes e quer montar uma rota visualmente marcante."
+            callout = "Perfeito pra quem busca paisagens cinematográficas e rotas ao ar livre.",
+            reason = "Boa opção para quem gosta de paisagens diferentes e quer montar uma rota visualmente marcante.",
+            coverImageUrl = "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&q=80"
         ),
         CountryDestination(
             country = "Tailândia",
@@ -325,7 +405,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             budgetFit = "low",
             paceFit = "relaxed",
             highlights = listOf("Bangkok", "Chiang Mai", "Phi Phi"),
-            reason = "Funciona muito bem para quem quer gastar menos, conhecer outra cultura e variar entre cidade, praia e templos."
+            callout = "Perfeito pra quem quer praias, templos e boa gastronomia gastando menos.",
+            reason = "Funciona muito bem para quem quer gastar menos, conhecer outra cultura e variar entre cidade, praia e templos.",
+            coverImageUrl = "https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=1200&q=80"
         ),
         CountryDestination(
             country = "Espanha",
@@ -335,7 +417,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             budgetFit = "medium",
             paceFit = "moderate",
             highlights = listOf("Barcelona", "Madrid", "Sevilha"),
-            reason = "Boa para quem quer uma viagem viva, com ruas cheias, museus, comida boa e opções para sair à noite."
+            callout = "Perfeito pra quem ama arte, tapas e cidades cheias de energia.",
+            reason = "Boa para quem quer uma viagem viva, com ruas cheias, museus, comida boa e opções para sair à noite.",
+            coverImageUrl = "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1200&q=80"
         ),
         CountryDestination(
             country = "Coreia do Sul",
@@ -345,7 +429,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             budgetFit = "medium",
             paceFit = "fast",
             highlights = listOf("Seul", "Busan", "Jeju"),
-            reason = "Combina com perfis que gostam de cidade, cultura pop, cafés temáticos e experiências modernas."
+            callout = "Perfeito pra quem curte cultura pop, cafés e experiências urbanas.",
+            reason = "Combina com perfis que gostam de cidade, cultura pop, cafés temáticos e experiências modernas.",
+            coverImageUrl = "https://images.unsplash.com/photo-1538485399081-7c8edcb7eb20?w=1200&q=80"
         ),
         CountryDestination(
             country = "Argentina",
@@ -355,7 +441,9 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             budgetFit = "low",
             paceFit = "relaxed",
             highlights = listOf("Buenos Aires", "Bariloche", "Mendoza"),
-            reason = "Uma alternativa próxima e versátil para misturar cidade, comida, paisagens e uma viagem mais econômica."
+            callout = "Perfeito pra quem quer boa comida, cultura e paisagens com custo-benefício.",
+            reason = "Uma alternativa próxima e versátil para misturar cidade, comida, paisagens e uma viagem mais econômica.",
+            coverImageUrl = "https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=1200&q=80"
         )
     )
 
@@ -391,7 +479,7 @@ class CountryRecommendationsActivity : AppCompatActivity() {
             val arr = JSONArray(profileBody)
             if (arr.length() > 0) {
                 val obj = arr.getJSONObject(0)
-                budget = obj.optString("budget_level", "medium")
+                budget = normalizeBudget(obj.optString("budget_level", "medium"))
                 pace = obj.optString("travel_pace", "moderate")
                 val interestsJson = obj.optJSONArray("interests")
                 if (interestsJson != null) {
@@ -430,6 +518,22 @@ class CountryRecommendationsActivity : AppCompatActivity() {
         }
     }
 
+    private fun normalizeBudget(raw: String): String {
+        return when (raw.lowercase().trim()) {
+            "low", "\$", "economico", "econômico" -> "low"
+            "high", "\$\$\$", "luxo", "luxuoso", "premium" -> "high"
+            else -> "medium"
+        }
+    }
+
+    private fun budgetRank(raw: String): Int = when (normalizeBudget(raw)) {
+        "low" -> 1
+        "high" -> 3
+        else -> 2
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
     private fun supabaseGet(url: String, token: String): Request = Request.Builder()
         .url(url)
         .addHeader("apikey", supabaseKey)
@@ -456,6 +560,8 @@ class CountryRecommendationsActivity : AppCompatActivity() {
         val budgetFit: String,
         val paceFit: String,
         val highlights: List<String>,
-        val reason: String
+        val callout: String,
+        val reason: String,
+        val coverImageUrl: String
     )
 }

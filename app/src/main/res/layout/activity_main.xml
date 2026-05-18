@@ -366,6 +366,22 @@
             android:contentDescription="Criar rota"/>
     </LinearLayout>
 
+
+    <!-- Botão para voltar rapidamente à localização atual do usuário -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabMyLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/omw_search_bar_background"
+        android:src="@android:drawable/ic_menu_mylocation"
+        app:tint="@color/omw_purple_main"
+        app:fabSize="mini"
+        android:contentDescription="Voltar para minha localização"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintStart_toStartOf="parent"/>
+
     <!-- FAB Offline -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabOffline"
