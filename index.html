@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OwnMyWay — A sua rota personalizada</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+          --purple: #4A2080;
+          --light:  #7B3FBE;
+          --lav:    #D4B8F0;
+          --dark:   #0F0626;
+        }
+
+        html, body { height: 100%; }
+
+        body {
+          background: #fff;
+          color: #1a1a2e;
+          font-family: 'DM Sans', sans-serif;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+          overflow: hidden;
+        }
+
+        .top {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 52px 24px 20px;
+          position: relative;
+          z-index: 2;
+          animation: rise 0.9s ease both;
+        }
+
+        .badge {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: rgba(74,32,128,0.08);
+          border: 1px solid rgba(74,32,128,0.18);
+          color: var(--purple);
+          font-size: 11px; font-weight: 500;
+          letter-spacing: 0.12em; text-transform: uppercase;
+          padding: 7px 18px; border-radius: 100px;
+          margin-bottom: 28px;
+        }
+
+        .badge-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: var(--purple);
+          animation: pulse 2s infinite;
+        }
+
+        h1 {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(54px, 11vw, 96px);
+          font-weight: 300; line-height: 1.0;
+          letter-spacing: -0.02em;
+          color: var(--dark);
+          margin-bottom: 20px;
+        }
+
+        h1 em {
+          font-style: italic;
+          background: linear-gradient(135deg, var(--purple) 0%, var(--light) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .tagline {
+          font-size: clamp(15px, 2.2vw, 18px);
+          font-weight: 300;
+          color: #666;
+          max-width: 440px;
+          line-height: 1.65;
+          margin-bottom: 36px;
+        }
+
+        .pills {
+          display: flex; flex-wrap: wrap;
+          justify-content: center; gap: 8px;
+          margin-bottom: 36px;
+        }
+
+        .pill {
+          background: rgba(74,32,128,0.06);
+          border: 1px solid rgba(74,32,128,0.14);
+          color: var(--purple);
+          font-size: 13px; font-weight: 400;
+          padding: 7px 18px; border-radius: 100px;
+        }
+
+        .cta {
+          display: inline-flex; align-items: center; gap: 10px;
+          background: var(--purple);
+          color: #fff; text-decoration: none;
+          font-size: 15px; font-weight: 500;
+          padding: 14px 34px; border-radius: 100px;
+          transition: background 0.25s, transform 0.25s;
+          margin-bottom: 8px;
+        }
+        .cta:hover { background: var(--light); transform: translateY(-2px); }
+
+        .scene {
+          width: 100%;
+          flex-shrink: 0;
+          position: relative;
+          z-index: 1;
+        }
+
+        .scene svg { display: block; width: 100%; height: auto; }
+
+        @keyframes rise {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+          0%,100% { opacity:1; }
+          50%      { opacity:0.35; }
+        }
+
+        @keyframes drive {
+          from { transform: translateX(-160px); }
+          to   { transform: translateX(1320px); }
+        }
+
+        @keyframes cloudDrift {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-60px); }
+        }
+
+        .car-group { animation: drive 8s linear infinite; }
+        .cloud1 { animation: cloudDrift 18s ease-in-out infinite alternate; }
+        .cloud2 { animation: cloudDrift 24s ease-in-out 6s infinite alternate-reverse; }
+
+        @media (max-width: 480px) {
+          .pills .pill:nth-child(n+4) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="top">
+    <div class="badge">
+        <span class="badge-dot"></span>
+        Pronto para uma nova experiência?
+    </div>
+
+    <h1><em>OwnMyWay</em></h1>
+
+    <p class="tagline">
+        Crie roteiros de viagem feitos para você —
+        seus hobbies, seu ritmo, seu orçamento.
+    </p>
+
+    <div class="pills">
+        <span class="pill">🗺️ Rotas personalizadas</span>
+        <span class="pill">🤖 Assistente com IA</span>
+        <span class="pill">📶 Funciona offline</span>
+        <span class="pill">💰 Gasto estimado</span>
+        <span class="pill">👥 Rede social</span>
+    </div>
+
+    <a href="https://github.com/FelixJP23/OwnMyWay" class="cta">Ver no GitHub &rarr;</a>
+</div>
+
+<div class="scene">
+    <svg viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice">
+        <defs>
+            <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#e8f4ff"/>
+                <stop offset="100%" stop-color="#c5e3f7"/>
+            </linearGradient>
+            <linearGradient id="mountainGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6b5b9e"/>
+                <stop offset="100%" stop-color="#4A2080"/>
+            </linearGradient>
+            <linearGradient id="mountainFar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#9b8cc4"/>
+                <stop offset="100%" stop-color="#7B5FB5"/>
+            </linearGradient>
+            <linearGradient id="groundGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#d4c5a9"/>
+                <stop offset="100%" stop-color="#b8a88a"/>
+            </linearGradient>
+        </defs>
+
+        <rect x="0" y="0" width="1200" height="300" fill="url(#skyGrad)"/>
+
+        <circle cx="970" cy="58" r="36" fill="#FFE066" opacity="0.92"/>
+        <circle cx="970" cy="58" r="50" fill="#FFE066" opacity="0.18"/>
+
+        <g class="cloud1">
+            <ellipse cx="220" cy="62" rx="68" ry="21" fill="white" opacity="0.88"/>
+            <ellipse cx="258" cy="52" rx="48" ry="25" fill="white" opacity="0.9"/>
+            <ellipse cx="187" cy="66" rx="38" ry="17" fill="white" opacity="0.82"/>
+        </g>
+
+        <g class="cloud2">
+            <ellipse cx="690" cy="46" rx="53" ry="17" fill="white" opacity="0.75"/>
+            <ellipse cx="724" cy="37" rx="40" ry="21" fill="white" opacity="0.8"/>
+            <ellipse cx="660" cy="50" rx="32" ry="14" fill="white" opacity="0.7"/>
+        </g>
+
+        <polygon points="0,185 100,95 220,160 340,88 460,148 560,82 680,142 780,95 900,158 1000,100 1100,152 1200,108 1200,210 0,210" fill="url(#mountainFar)" opacity="0.55"/>
+
+        <polygon points="0,210 80,135 180,195 300,118 420,178 520,108 640,168 740,115 860,172 980,122 1080,178 1200,128 1200,225 0,225" fill="url(#mountainGrad)"/>
+
+        <g fill="#2D1060" opacity="0.85">
+            <polygon points="30,225 45,182 60,225"/>
+            <polygon points="55,225 72,176 89,225"/>
+            <polygon points="82,225 100,180 118,225"/>
+            <rect x="42" y="219" width="6" height="8"/>
+            <rect x="69" y="219" width="6" height="8"/>
+            <rect x="97" y="219" width="6" height="8"/>
+        </g>
+
+        <g fill="#2D1060" opacity="0.85">
+            <polygon points="1085,225 1100,180 1115,225"/>
+            <polygon points="1110,225 1128,174 1146,225"/>
+            <polygon points="1138,225 1158,182 1178,225"/>
+            <rect x="1097" y="219" width="6" height="8"/>
+            <rect x="1125" y="219" width="6" height="8"/>
+            <rect x="1155" y="219" width="6" height="8"/>
+        </g>
+
+        <rect x="0" y="223" width="1200" height="77" fill="url(#groundGrad)"/>
+
+        <g fill="#4a8a4a" opacity="0.6">
+            <rect x="150" y="210" width="6" height="20" rx="3"/>
+            <rect x="141" y="216" width="20" height="6" rx="3"/>
+            <rect x="141" y="210" width="6" height="13" rx="3"/>
+            <rect x="159" y="212" width="6" height="11" rx="3"/>
+        </g>
+        <g fill="#4a8a4a" opacity="0.55">
+            <rect x="1010" y="208" width="6" height="22" rx="3"/>
+            <rect x="1001" y="215" width="20" height="6" rx="3"/>
+            <rect x="1001" y="209" width="6" height="14" rx="3"/>
+            <rect x="1019" y="211" width="6" height="12" rx="3"/>
+        </g>
+
+        <rect x="0" y="248" width="1200" height="52" fill="#3a3a3a"/>
+        <rect x="0" y="244" width="1200" height="6" fill="#2a2a2a"/>
+
+        <g fill="#ffec7a" opacity="0.85">
+            <rect x="40" y="271" width="48" height="6" rx="3"/>
+            <rect x="160" y="271" width="48" height="6" rx="3"/>
+            <rect x="280" y="271" width="48" height="6" rx="3"/>
+            <rect x="400" y="271" width="48" height="6" rx="3"/>
+            <rect x="520" y="271" width="48" height="6" rx="3"/>
+            <rect x="640" y="271" width="48" height="6" rx="3"/>
+            <rect x="760" y="271" width="48" height="6" rx="3"/>
+            <rect x="880" y="271" width="48" height="6" rx="3"/>
+            <rect x="1000" y="271" width="48" height="6" rx="3"/>
+            <rect x="1120" y="271" width="48" height="6" rx="3"/>
+        </g>
+
+        <line x1="0" y1="252" x2="1200" y2="252" stroke="#777" stroke-width="2" opacity="0.5"/>
+
+        <g>
+            <rect x="900" y="218" width="3" height="32" fill="#888"/>
+            <rect x="888" y="208" width="28" height="16" rx="2" fill="#228B22"/>
+            <text x="902" y="217" text-anchor="middle" font-size="7" fill="white" font-family="sans-serif" font-weight="bold">CIDADE</text>
+            <text x="902" y="222" text-anchor="middle" font-size="5" fill="white" font-family="sans-serif">2 km</text>
+        </g>
+
+        <g class="car-group">
+            <rect x="50" y="232" width="110" height="32" rx="6" fill="#4A2080"/>
+            <polygon points="70,232 82,212 138,212 150,232" fill="#3a1868"/>
+            <rect x="86" y="215" width="48" height="16" rx="3" fill="#c4e8f8" opacity="0.85"/>
+            <line x1="110" y1="215" x2="110" y2="231" stroke="#3a1868" stroke-width="2"/>
+            <rect x="82" y="209" width="44" height="4" rx="1" fill="#2a0f50"/>
+            <circle cx="104" cy="204" r="7" fill="#D4B8F0"/>
+            <polygon points="104,217 100,208 108,208" fill="#D4B8F0"/>
+            <circle cx="104" cy="204" r="3" fill="#4A2080"/>
+            <rect x="48" y="242" width="14" height="8" rx="2" fill="#2a0f50"/>
+            <rect x="148" y="242" width="14" height="8" rx="2" fill="#2a0f50"/>
+            <rect x="157" y="240" width="8" height="6" rx="2" fill="#fff9a0" opacity="0.9"/>
+            <rect x="46" y="240" width="7" height="6" rx="2" fill="#ff4444" opacity="0.8"/>
+            <circle cx="80" cy="266" r="14" fill="#222"/>
+            <circle cx="80" cy="266" r="7" fill="#888"/>
+            <circle cx="80" cy="266" r="3" fill="#ccc"/>
+            <circle cx="134" cy="266" r="14" fill="#222"/>
+            <circle cx="134" cy="266" r="7" fill="#888"/>
+            <circle cx="134" cy="266" r="3" fill="#ccc"/>
+            <line x1="-8" y1="248" x2="44" y2="246" stroke="#D4B8F0" stroke-width="2" opacity="0.5" stroke-dasharray="4,6"/>
+            <line x1="0" y1="255" x2="44" y2="253" stroke="#D4B8F0" stroke-width="1.5" opacity="0.35" stroke-dasharray="3,7"/>
+        </g>
+
+    </svg>
+</div>
+
+</body>
+</html>
